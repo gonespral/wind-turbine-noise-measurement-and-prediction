@@ -1,4 +1,4 @@
-# Downloads data from surfdrive and saves it in downloads
+# Downloads data from surfdrive and saves it in downloads/ directory
 
 import os
 import tqdm
@@ -42,4 +42,7 @@ def download_data():
 
 
 if __name__ == "__main__":
-    download_data()
+    try:
+        download_data()
+    except KeyboardInterrupt:
+        print("Download interrupted. Current file is likely incomplete. Delete it and re-run to continue.")

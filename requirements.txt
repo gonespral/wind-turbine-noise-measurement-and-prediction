@@ -5,3 +5,4 @@ scipy
 seaborn
 mat73
 numpy
+jupyterlab
