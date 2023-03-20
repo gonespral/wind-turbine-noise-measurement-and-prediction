@@ -57,7 +57,7 @@ def G_3():
     return Angle_dependent_level
 
 def SPL_LBL():
-    SPL = 10 * math.log(delta * Mach ** 5 * L * D_h() /( r_e ** 2)) + G_1() + G_2() + G_3()
+    SPL = 10 * math.log(delta * Mach ** 5 * L * D_h() /( r_e ** 2), 10) + G_1() + G_2() + G_3()
     return SPL
 
 
