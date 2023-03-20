@@ -11,7 +11,7 @@ def l(c, alpha_tip):
     alpha_tip -- angle of attack of tip (degrees)
     """
 
-    if (alpha_tip >= 0) AND (alpha_tip <= 2):
+    if (alpha_tip >= 0) and (alpha_tip <= 2):
         l = c * (0.023 + (0.0169 * alpha_tip))
     elif alpha_tip > 2:
         l = c * (0.0378 + (0.0095 * alpha_tip))
