@@ -1,4 +1,4 @@
-# Downloads data from surfdrive and saves it in downloads/ directory
+# Downloads data from surfdrive and processed it in downloads/ directory
 
 import os
 import tqdm
