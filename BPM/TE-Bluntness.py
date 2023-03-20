@@ -81,9 +81,9 @@ def SPL_BLUNT(h, M, L, D_h, r_e, G4, G5):
     SPL_BLUNT = 10* np.log10(h * M**5.5 * L * D_h / r_e**2 ) + G4 + G5
     return SPL_BLUNT
 
-def h/delta_avg1():
-    h/delta_avg1 = 6.724 * ( h / delta_avg)**2 - 4.019 * (h / detla_avg) + 1.107
-    return h/delta_avg1
+def hdelta_avg1():
+    hdelta_avg1 = 6.724 * ( h / delta_avg)**2 - 4.019 * (h / detla_avg) + 1.107
+    return hdelta_avg1
 
 
 
