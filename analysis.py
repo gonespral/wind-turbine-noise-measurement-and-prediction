@@ -2,16 +2,11 @@
 This script contains various plotting functions for the processed data. Pick which one to use at the bottom.
 """
 
-import mat73  # for loading data files
 import seaborn as sns  # for plotting
 import pandas as pd  # for data manipulation
 import numpy as np  # for FFT
 import matplotlib.pyplot as plt  # for plotting
-import tqdm  # for progress bar
 import pickle
-
-# Sample rate of the data
-sample_rate = 48128
 
 # Number of points to smooth FFT by
 n_smoothing = 10
@@ -41,12 +36,13 @@ for path in pickle_paths:
 
 def plot_1():
     """
-    Display the de-noised FFT of all measurements in a single plot.
+    Display the de-noised FFT of all measurements in a single plot. Uses rolling mean to smooth the data.
     :return:
     """
     fig, ax = plt.subplots()
     for measurement in measurements:
         df_wt_bg_fft = measurement["df_wt_bg_fft"]
+        df_wt_bg_fft["fft"] = df_wt_bg_fft["fft"].rolling(n_smoothing).mean()
         ax.plot(df_wt_bg_fft["freq"],
                 df_wt_bg_fft["fft"],
                 label=f"{measurement['v_inf']}m/s")
@@ -58,6 +54,25 @@ def plot_1():
     plt.show()
 
 
+def plot_2(i: int):
+    """
+    Display FFT of a single measurement. Uses rolling mean to smooth the data.
+    :param i: measurement index
+    :return:
+    """
+    fig, ax = plt.subplots()
+    df_wt_bg_fft = measurements[i]["df_wt_bg_fft"]
+    df_wt_bg_fft["fft"] = df_wt_bg_fft["fft"].rolling(n_smoothing).mean()
+    ax.plot(df_wt_bg_fft["freq"],
+            df_wt_bg_fft["fft"],
+            label=f"{measurements[i]['v_inf']}m/s")
+    ax.set_xlim(x_lim_0, x_lim_1)
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("Amplitude")
+    ax.set_title("Background FFT")
+    ax.legend()
+    plt.show()
+
+
 if __name__ in "__main__":
-    # Pick what plotting function to use
-    plot_1()
+    plot_2(0)
