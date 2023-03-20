@@ -1,5 +1,6 @@
 '''File to house the LBL-VS calculation procedure'''
 
+import math
 def st_prime_one():
     st_prime = 0
     if Reynolds < 12.3*10**5:
@@ -57,6 +58,7 @@ def G_3():
     return Angle_dependent_level
 
 def SPL_LBL():
+    SPL = 10 * math.log(delta * M ** 5 * L * D_h() /( r_e ** 2), 10) + G_1() + G_2() + G_3()
     return SPL
 
 
