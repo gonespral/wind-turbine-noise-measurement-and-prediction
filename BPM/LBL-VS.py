@@ -1,5 +1,5 @@
 '''File to house the LBL-VS calculation procedure'''
-
+import math
 def st_prime_one():
     st_prime = 0
     if Reynolds < 12.3*10**5:
@@ -45,7 +45,7 @@ def G_2():
     elif d < 0.5689:
         Peak_scaled_level = 65.188 * math.log(d, 10) + 9.125
     elif d < 1.7579:
-        Peak_scaled_level = -114.052 * (math.log(d, 10))^2
+        Peak_scaled_level = -114.052 * (math.log(d, 10))**2
     elif d < 3.0889:
         Peak_scaled_level = -65.188 * math.log(d, 10) + 9.125
     else:
@@ -57,7 +57,7 @@ def G_3():
     return Angle_dependent_level
 
 def SPL_LBL():
-    SPL = 10 * math.log(delta * Mach ** 5 * L * D_h() /( r_e ** 2)) + G_1() + G_2() + G_3()
+    SPL = 10 * math.log(delta * M ** 5 * L * D_h() /( r_e ** 2), 10) + G_1() + G_2() + G_3()
     return SPL
 
 
