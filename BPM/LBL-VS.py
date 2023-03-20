@@ -45,7 +45,7 @@ def G_2():
     elif d < 0.5689:
         Peak_scaled_level = 65.188 * math.log(d, 10) + 9.125
     elif d < 1.7579:
-        Peak_scaled_level = -114.052 * (math.log(d, 10))^2
+        Peak_scaled_level = -114.052 * (math.log(d, 10))**2
     elif d < 3.0889:
         Peak_scaled_level = -65.188 * math.log(d, 10) + 9.125
     else:
