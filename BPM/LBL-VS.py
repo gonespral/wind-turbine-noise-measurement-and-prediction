@@ -1,5 +1,4 @@
 '''File to house the LBL-VS calculation procedure'''
-
 import math
 def st_prime_one():
     st_prime = 0
