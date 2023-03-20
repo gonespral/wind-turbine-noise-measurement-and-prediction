@@ -1,4 +1,5 @@
 import common.py
+import math
 import numpy as np
 
 
@@ -13,7 +14,6 @@ U =                                #Free stream velocity
 delta =                            #Boundary layer thiccness
 Theta_e =                          #Angle from source streamwise axis
 Phi_e =                            #Angle from source source lateral y axis
-f =                                #frequency
 alpha_star =                       #effective aerodynamic angle of attack
 M =                                #flow mach number
 M_c = 0.8 * M                      #convection mach number
@@ -25,4 +25,9 @@ U_max =                            #max flow vel
 f =                                #frequency
 Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)                             #directivity func
 
+
+"""
+Initializing frequency bands
+
+"""
 
