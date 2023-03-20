@@ -8,7 +8,7 @@ def Dh_bar(Theta_e, Phi_e, M, M_c):
         Theta_e -- Retarded angle from source streamwise x-axis to observer [rad]
         Phi_e -- Retarded angle from source lateral y-axis to observer [rad]
         M -- Mach number [-]
-        M_c -- x [-]
+        M_c -- Convection Mach number [-]
     '''
     num = 2 * (np.sin(Theta_e/2))**2 * (np.sin(Phi_e))**2
     den = (1 + M * np.cos(Theta_e)) * (1 + (M - M_c) * np.cos(Theta_e))**2
