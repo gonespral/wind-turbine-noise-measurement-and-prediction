@@ -16,7 +16,7 @@ n_smoothing = 10
 
 # x-axis limits for plots (frequency)
 x_lim_0 = 0
-x_lim_1 = 100
+x_lim_1 = 20000
 
 # Path to pickle files
 pickle_paths = ["data/processed/8m_s.pkl",
@@ -107,6 +107,7 @@ def plot_5():
         df_wt_bg_fft = measurement["df_wt_bg_fft"]
         ax.psd(df_wt_bg_fft["fft"],
                Fs=sample_rate,
+               NFFT=1024,
                label=f"{measurement['v_inf']}m/s")
     ax.set_xscale("log")
     ax.set_xlim(x_lim_0, x_lim_1)
@@ -118,4 +119,4 @@ def plot_5():
 
 
 if __name__ in "__main__":
-    plot_1()
+    plot_5()
