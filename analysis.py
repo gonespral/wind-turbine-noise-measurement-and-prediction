@@ -8,12 +8,15 @@ import numpy as np  # for FFT
 import matplotlib.pyplot as plt  # for plotting
 import pickle
 
+# Sample rate of the data
+sample_rate = 48128
+
 # Number of points to smooth FFT by
 n_smoothing = 10
 
 # x-axis limits for plots (frequency)
 x_lim_0 = 0
-x_lim_1 = 200
+x_lim_1 = 100
 
 # Path to pickle files
 pickle_paths = ["data/processed/8m_s.pkl",
@@ -49,30 +52,70 @@ def plot_1():
     ax.set_xlim(x_lim_0, x_lim_1)
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Amplitude")
-    ax.set_title("Background FFT")
+    ax.set_title("Wind Turbine - Background FFT")
     ax.legend()
     plt.show()
 
 
-def plot_2(i: int):
+def plot_3(i: int):
     """
-    Display FFT of a single measurement. Uses rolling mean to smooth the data.
+    Display FFT of a single measurement.
     :param i: measurement index
     :return:
     """
     fig, ax = plt.subplots()
     df_wt_bg_fft = measurements[i]["df_wt_bg_fft"]
-    df_wt_bg_fft["fft"] = df_wt_bg_fft["fft"].rolling(n_smoothing).mean()
     ax.plot(df_wt_bg_fft["freq"],
             df_wt_bg_fft["fft"],
             label=f"{measurements[i]['v_inf']}m/s")
     ax.set_xlim(x_lim_0, x_lim_1)
     ax.set_xlabel("Frequency (Hz)")
     ax.set_ylabel("Amplitude")
-    ax.set_title("Background FFT")
+    ax.set_title("Wind Turbine - Background FFT")
+    ax.legend()
+    plt.show()
+
+
+def plot_4(i: int):
+    """
+    Plot Power Spectral Density of a single measurement, using plt.psd Uses rolling mean to smooth the data.
+    :param i: measurement index
+    :return:
+    """
+    fig, ax = plt.subplots()
+    df_wt_bg_fft = measurements[i]["df_wt_bg_fft"]
+    ax.psd(df_wt_bg_fft["fft"],
+           Fs=sample_rate,
+           label=f"{measurements[i]['v_inf']}m/s")
+    ax.set_xscale("log")
+    ax.set_xlim(x_lim_0, x_lim_1)
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("Amplitude")
+    ax.set_title("Wind Turbine - Background PSD FFT")
+    ax.legend()
+    plt.show()
+
+
+def plot_5():
+    """
+    Plot Power Spectral Density of all measurements, using plt.psd Uses rolling mean to smooth the data.
+    :param i: measurement index
+    :return:
+    """
+    fig, ax = plt.subplots()
+    for measurement in measurements:
+        df_wt_bg_fft = measurement["df_wt_bg_fft"]
+        ax.psd(df_wt_bg_fft["fft"],
+               Fs=sample_rate,
+               label=f"{measurement['v_inf']}m/s")
+    ax.set_xscale("log")
+    ax.set_xlim(x_lim_0, x_lim_1)
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("Amplitude")
+    ax.set_title("Wind Turbine - Background PSD FFT")
     ax.legend()
     plt.show()
 
 
 if __name__ in "__main__":
-    plot_2(0)
+    plot_1()
