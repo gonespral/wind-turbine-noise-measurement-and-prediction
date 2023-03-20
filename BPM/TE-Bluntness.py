@@ -48,7 +48,7 @@ def St(f, h , U):
 
 
 
-def G4(h 2, delta_avg, psi):
+def G4(h, delta_avg, psi):
     if (h / delta_avg) <= 5:
         G4 = 17.5 * np.log10( h / delta_avg ) + 157.5 - 1.114 * psi 
     elif (h / delta_avg) > 5:
