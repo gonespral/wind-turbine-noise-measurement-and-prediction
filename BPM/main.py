@@ -7,24 +7,42 @@ import math
 Experimental Variables
 
 """
-Reynolds =                         #Reynolds number based on chord length
-Span = 2                            #Wind turbine span
-r_e = common.r_e(0, 0, 1.775, 1.34)                 #distance from source to observer (meters)
-U =                                #Free stream velocity
-delta =                            #Boundary layer thiccness
-Theta_e =                          #Angle from source streamwise axis
-Phi_e =                            #Angle from source source lateral y axis
-alpha_star =                       #effective aerodynamic angle of attack
-M =                                #flow mach number
-M_c = 0.8 * M                      #convection mach number
-T =                                #temperature
-c_0 = np.sqrt(1.4 * 287 * T)       #speed of sound
-c =                                #chord
-alpha_tip =                        #angle of attack of tip
-U_max =                            #max flow vel
-f =                                #frequency
-Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)                             #directivity func
-
+#viscosity
+visc = 1.48 * 10**-5
+#density
+rho = 1.225
+#span
+Span = 1                    
+#distance from source to receiver        
+r_e = common.r_e(0, 0, 1.775, 1.34)   
+#Boundary layer thickness              
+delta = 
+#Angle from source streamwise axis                           
+Theta_e = np.pi / 2  
+#Angle from source source lateral y axis                       
+Phi_e = np.pi / 2   
+#effective aerodynamic angle of attack                        
+alpha_star =      
+#temperature K                 
+T = 288.15    
+#chord cm                           
+c = 0.15    
+#angle of attack of tip                          
+alpha_tip =  
+ #max flow vel                      
+U_max = 8 
+#speed of sound  
+c_0 = np.sqrt(1.4 * 287 * T)   
+#Free stream velocity    
+U = 8       
+#flow mach number                        
+M = U / c_0    
+#convection mach number                                 
+M_c = 0.8 * M                  
+#directivity func                    
+Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)      
+#Reynolds number based on chord length                       
+Reynolds = rho * U * c / visc        
 
 """
 Initializing frequency bands

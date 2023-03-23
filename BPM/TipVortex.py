@@ -1,5 +1,6 @@
 
 import numpy as np
+import math
 import common
 
 def l(c, alpha_tip):
