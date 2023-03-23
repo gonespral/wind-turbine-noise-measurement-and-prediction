@@ -54,7 +54,6 @@ def calc_a0(Rc):
 # ----------------------------------------------------------------------------------------------------------
 
 # Amplitude functions
-# TODO: rewrite into one function
 def amplitudefunctions(Rc,alphastar,M,R_deltaPstar):
     '''Returns values for the amplitude functions K1, DeltaK1, and K2.'''
     # eqs 47, 48, 49, 50
@@ -94,6 +93,49 @@ def calc_a(stp, sts, st1, st2, st1bar):
     st_peak = max(st1, st2, st1bar)
     a = abs(math.log10(st/st_peak))
     return a
+
+def calc_b(sts, st2):
+    # eq 43
+    b = abs(math.log10(sts/st2))
+    return b
+
+def calc_b0(Rc):
+    # eq 44
+    if Rc < 9.52*10**4:
+        b0 = .30
+    elif 9.52*10**4 <= Rc <= 8.57*10**5:
+        b0 = (-4.48*10**(-13))*(Rc - 8.57*10**5)**2 + .56
+    else:
+        b0 = .56
+    return b0
+# -------------------------------------------------------------------------------------------------------------
+
+def calc_Bmin(b):
+    # eq 41
+    if b < .13:
+        Bmin = math.sqrt(16.888 - 886.788*b**2) - 4.109
+    elif .13 <= b <= .145:
+        Bmin = -83.607*b + 8.138
+    else:
+        Bmin = -817.810*b**3 + 355.210*b**2 -135.024*b + 10.619
+    return Bmin
+
+def calc_Bmax(b):
+    # eq 42
+    if b < .1:
+        Bmax = math.sqrt(16.888 - 886.788*b**2) - 4.109
+    elif .1 <= b <= .187:
+        Bmax = -31.33*b + 1.854
+    else:
+        Bmax = -80.541*b**3 + 44.174*b**2 - 39.381*b + 2.344
+    return Bmax
+# -------------------------------------------------------------------------------------------------------------
+
+def calc_B(b,b0):
+    # eqs 45, 46
+    BR = (-20 - calc_Bmin(b0))/(calc_Bmax(b0)- calc_Bmin(b0))
+    B = calc_Bmin(b) + BR*(calc_Bmax(b)-calc_Bmin(b))
+    return B
 # -------------------------------------------------------------------------------------------------------------
 
 # Sound Pressure Levels
