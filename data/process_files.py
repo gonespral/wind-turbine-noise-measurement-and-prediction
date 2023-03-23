@@ -130,8 +130,8 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
         df_wt_fft_sample["sample"] = sample
 
         # Append to df
-        df_bg_fft_t = df_bg_fft_t.append(df_bg_fft_sample, ignore_index=True)
-        df_wt_fft_t = df_wt_fft_t.append(df_wt_fft_sample, ignore_index=True)
+        df_bg_fft_t = pd.concat([df_bg_fft_t, df_bg_fft_sample], ignore_index=True)
+        df_wt_fft_t = pd.concat([df_wt_fft_t, df_wt_fft_sample], ignore_index=True)
 
     # Denoise the WT signal - this is done by subtracting the BG FFT from the WT FFT.
     df_wt_bg_fft_t = df_wt_fft_t.copy()
