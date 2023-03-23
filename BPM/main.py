@@ -22,13 +22,13 @@ Theta_e = np.pi / 2
 #Angle from source source lateral y axis                       
 Phi_e = np.pi / 2   
 #effective aerodynamic angle of attack                        
-alpha_star =      
+alpha_star = 2     
 #temperature K                 
 T = 288.15    
-#chord cm                           
+#chord m                           
 c = 0.15    
 #angle of attack of tip                          
-alpha_tip =  
+alpha_tip = 2  
  #max flow vel                      
 U_max = 8 
 #speed of sound  
@@ -49,3 +49,4 @@ Initializing frequency bands
 
 """
 
+def plot_SPL()
