@@ -8,7 +8,7 @@ Experimental Variables
 
 """
 Reynolds =                         #Reynolds number based on chord length
-Span =                             #Wind turbine span
+Span = 2                            #Wind turbine span
 r_e = common.r_e(0, 0, 1.775, 1.34)                 #distance from source to observer (meters)
 U =                                #Free stream velocity
 delta =                            #Boundary layer thiccness
