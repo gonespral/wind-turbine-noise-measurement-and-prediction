@@ -4,7 +4,8 @@ import numpy as np
 import math
 import TE_Bluntness.py
 import TipVortex.py
-import
+import LBL_VS.py
+import TBL_TE.py
 
 """
 Experimental Variables
@@ -19,15 +20,15 @@ visc = 1.48 * 10**-5
 #density
 rho = 1.225
 #span
-span = 1                    
+L = 1                    
 #distance from source to receiver        
 r_e = common.r_e(0, 0, 1.775, 1.34)   
 #Boundary layer thickness              
-delta = 
-#
-delta_p = 
-# 
-delta_s = 
+delta = 0
+#displacement thickness
+delta_p = 0
+#displacement thickness of suction side of airfoil
+delta_s = 0
 #Angle from source streamwise axis                           
 Theta_e = np.pi / 2  
 #Angle from source source lateral y axis                       
@@ -60,8 +61,6 @@ Initializing frequency bands
 
 """
 
-def plot_SPL()
-
 def Blunt(f):
     delta_avg = TE_Bluntness.delta_avg(delta_p, delta_s)
     mu = TE_Bluntness.mu(h, delta_avg)
@@ -73,7 +72,7 @@ def Blunt(f):
     G5 = TE_Bluntness.G5(eta, eta0, k, m)
     St_peak = TE_Bluntness.St_peak(h, delta_avg, psi)
     eta = TE_Bluntness.eta(St, St_peak)
-    return TE_Bluntness(h,M,span,Dh,r_e,G4,G5)
+    return TE_Bluntness(h,M,L,Dh,r_e,G4,G5)
 
 def TipVortex(f):
     l = TipVortex.l(c, alpha_tip)
@@ -81,5 +80,9 @@ def TipVortex(f):
     st = TipVortex.st(f, l, U_max)
     return TipVortex.SPL_tip(M, M_max, l, Dh, r_e, st)
 
-
 def LBLVS(f):
+    return LBL_VS.SPL_LBL()
+
+
+SPL = TipVortex(200)
+print(SPL)
