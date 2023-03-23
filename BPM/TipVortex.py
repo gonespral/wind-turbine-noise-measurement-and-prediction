@@ -20,6 +20,7 @@ def l(c, alpha_tip):
         print("Angle of attack is negative!!")
     return l
 
+
 def M_max(M, alpha_tip):
     """
     calculate max mach number (M_max)
