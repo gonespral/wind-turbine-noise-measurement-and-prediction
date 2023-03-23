@@ -11,7 +11,7 @@ def st_prime_one():
     return st_prime
 
 def st_peak():
-    st_prime_peak = st_prime_one() * 10 ** (-0.04*)
+    st_prime_peak = st_prime_one() * 10 ** (-0.04*alpha_star)
     return  st_prime_peak
 
 def G_1():
@@ -57,7 +57,7 @@ def G_3():
     return Angle_dependent_level
 
 def SPL_LBL():
-    SPL = 10 * math.log(delta * M ** 5 * L * D_h() /( r_e ** 2), 10) + G_1() + G_2() + G_3()
+    SPL = 10 * math.log(delta * M ** 5 * L * Dh() /( r_e ** 2), 10) + G_1() + G_2() + G_3()
     return SPL
 
 

@@ -1,6 +1,6 @@
+pandas
 tqdm
 requests
-pandas
 scipy
 seaborn
 mat73

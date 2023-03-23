@@ -1,8 +1,9 @@
 
 import numpy as np
+import math
 import common
 
-def l(c, alpha_tip):
+def lfunc(c, alpha_tip):
     """
     calculate separated flow region size (l)
 
@@ -19,7 +20,8 @@ def l(c, alpha_tip):
         print("Angle of attack is negative!!")
     return l
 
-def M_max(M, alpha_tip):
+
+def M_maximum(M, alpha_tip):
     """
     calculate max mach number (M_max)
 
@@ -29,7 +31,7 @@ def M_max(M, alpha_tip):
     """
     return M * (1 + (0.036 * alpha_tip))
 
-def st(f, l, U_max):
+def stNum(f, l, U_max):
     """
     calculate strouhal number (l)
 

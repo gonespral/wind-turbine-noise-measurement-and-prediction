@@ -10,6 +10,9 @@ if not os.path.exists("processed"):
 # Sample rate of the data
 sample_rate = 48128
 
+# Number of samples in each time step for time-frequency analysis
+time_step = sample_rate / 2
+
 # Paths to the data files. Run download_files.py to download the data.
 # Corresponding files must be in the same order.
 bg_data_path_list = ["downloads/U08_Background.mat",
@@ -37,6 +40,7 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     print(f"\nProcessing files: {bg_data_path} and {wt_data_path}")
 
     # Extract data from mat file
+    print("Extracting data from mat files...")
     bg_data_dict = mat73.loadmat(bg_data_path)
     wt_data_dict = mat73.loadmat(wt_data_path)
 
@@ -84,6 +88,7 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     df_wt_fft = df_wt_fft.loc[df_wt_fft["freq"] > 0]
 
     # Denoise the WT signal - this is done by subtracting the BG FFT from the WT FFT.
+    print("Denoising WT signal...")
     df_wt_bg_fft = df_wt_fft.copy()
     df_wt_bg_fft["fft"] = df_wt_bg_fft["fft"] - df_bg_fft["fft"]
     df_wt_bg_fft.loc[df_wt_bg_fft["fft"] < 0, "fft"] = 0
@@ -97,7 +102,42 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     # df_wt_fft_list.append(df_wt_fft)
     # df_bg_wt_fft_list.append(df_wt_bg_fft)
 
-    # Save data to pickle file
+    # Now calculate time-dependent FFT
+    # Iterate over every sample_rate/2 samples
+
+    print(f"Evaluating FFT in time-frequency plane with {time_step}...")
+    df_bg_fft_t = pd.DataFrame()
+    df_wt_fft_t = pd.DataFrame()
+
+    for sample in range(0, len(df_bg_mean), int(time_step)):
+        # Calculate the FFT
+        signal_fft_bg = np.fft.fft(np_bg_mean[sample:sample + int(sample_rate / 2)])
+        signal_fft_wt = np.fft.fft(np_wt_mean[sample:sample + int(sample_rate / 2)])
+
+        # Calculate the frequency axis - this creates an array of the same size as the signal with the frequency of
+        # each bin (in Hz).
+        ax_freq_bg = np.fft.fftfreq(np_bg_mean[sample:sample + int(sample_rate / 2)].size, d=1 / sample_rate)
+        ax_freq_wt = np.fft.fftfreq(np_wt_mean[sample:sample + int(sample_rate / 2)].size, d=1 / sample_rate)
+
+        # Create new dataframe for FFT results (absolute value, only positive frequencies)
+        df_bg_fft_sample = pd.DataFrame({"freq": ax_freq_bg, "fft": np.abs(signal_fft_bg)})
+        df_bg_fft_sample = df_bg_fft_sample.loc[df_bg_fft_sample["freq"] > 0]
+        df_wt_fft_sample = pd.DataFrame({"freq": ax_freq_wt, "fft": np.abs(signal_fft_wt)})
+        df_wt_fft_sample = df_wt_fft_sample.loc[df_wt_fft_sample["freq"] > 0]
+
+        # Add sample number to df
+        df_bg_fft_sample["sample"] = sample
+        df_wt_fft_sample["sample"] = sample
+
+        # Append to df
+        df_bg_fft_t = pd.concat([df_bg_fft_t, df_bg_fft_sample], ignore_index=True)
+        df_wt_fft_t = pd.concat([df_wt_fft_t, df_wt_fft_sample], ignore_index=True)
+
+    # Denoise the WT signal - this is done by subtracting the BG FFT from the WT FFT.
+    df_wt_bg_fft_t = df_wt_fft_t.copy()
+    df_wt_bg_fft_t["fft"] = df_wt_bg_fft_t["fft"] - df_bg_fft_t["fft"]
+
+    # Save processed data to pickle file
     filename = f"processed/{v_inf}m_s.pkl"
     print(f"Saving data to {filename}...")
     data_dict = {"v_inf": v_inf,
@@ -111,5 +151,11 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
 
     with open(filename, "wb") as f:
         pickle.dump(data_dict, f)
+
+    # Confirm file has been created
+    if os.path.exists(filename):
+        print("File created successfully")
+    else:
+        raise FileNotFoundError("File not created")
 
     print("Done")
