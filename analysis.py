@@ -35,7 +35,7 @@ def info():
     # Get dir() of functions of  global namespace written by user
     for name, obj in globals().items():
         if callable(obj) and obj.__module__ == "__main__":
-            print(f"    {name}()")x<_lim
+            print(f"    {name}")
     print()
 
     print("--- Available variables ---")
