@@ -8,6 +8,9 @@ import math
 # U
 # alphastar
 # Rc
+# re
+# D_bar_h
+
 # ----------------------------------------------------------------------------------------------------
 
 # Strouhall numbers:
@@ -109,6 +112,25 @@ def calc_b0(Rc):
         b0 = .56
     return b0
 # -------------------------------------------------------------------------------------------------------------
+def calc_Amin(a):
+    # eq 35
+    if a < .204:
+        Amin = math.sqrt(67.552 - 886.788*a**2) - 8.219
+    elif .204 <= a <= .244:
+        Amin = -32.665**a + 3.981
+    else:
+        Amin = -142.795*a**3 + 103.656*a**2 - 57.757*a +6.006
+    return Amin
+
+def calc_Amax(a):
+    #eq 36
+    if a < .13:
+        Amax = math.sqrt(67.552 - 886.788*a**2) - 8.219
+    elif .13 <= a <= .321:
+        Amax = -15.901**a + 1.098
+    else:
+        Amax = -4.669*a**3 + 3.491*a**2 - 16.699*a + 1.149
+    return Amax
 
 def calc_Bmin(b):
     # eq 41
@@ -130,6 +152,11 @@ def calc_Bmax(b):
         Bmax = -80.541*b**3 + 44.174*b**2 - 39.381*b + 2.344
     return Bmax
 # -------------------------------------------------------------------------------------------------------------
+def calc_A(a,a0):
+    # eqs 39, 40
+    AR = (-20 - calc_Amin(a0))/(calc_Amax(a0)- calc_Amin(a0))
+    A = calc_Amin(a) + AR*(calc_Amax(a)-calc_Amin(a))
+    return A
 
 def calc_B(b,b0):
     # eqs 45, 46
@@ -137,14 +164,22 @@ def calc_B(b,b0):
     B = calc_Bmin(b) + BR*(calc_Bmax(b)-calc_Bmin(b))
     return B
 # -------------------------------------------------------------------------------------------------------------
+def calc_SPLp(A, stp, st1, K1, deltaK1):
+    # eq 25
+    SPLp = 10*math.log10((delta_p_star*M**5*L*D_bar_h)/re**2) + A*(stp/st1) + K1 - 3 + deltaK1
+    return SPLp
 
-# Sound Pressure Levels
-# TODO: rewrite this bad boy to actually be useable
-def calc_SPLtot(delta_p_star,delta_s_star,M,L,D_h_bar,A,B,stp,sts,st1,st2,K1,delta_K1,K2,re):
-    '''Calculate total SPL for angles of attack up to a0*'''
-    SPLp = 10*math.log10((delta_p_star*M**5*L*D_h_bar)/(re**2)) + A*(stp/st1) + (K1-3) + delta_K1
-    SPLs = 10*math.log10((delta_s_star*M**5*L*D_h_bar)/(re**2)) + A*(sts/st1) + (K1-3)
-    SPLalpha = 10*math.log10((delta_s_star*M**5*L*D_h_bar)/(re**2)) + B*(sts/st2) + K2
+def calc_SPLs(A, sts, st1, K1):
+    # eq 25
+    SPLp = 10*math.log10((delta_s_star*M**5*L*D_bar_h)/re**2) + A*(sts/st1) + K1 - 3
+    return SPLp
 
-    SPLtotal = 10*math.log10(10**(SPLalpha/10) + 10**(SPLs/10) + 10**(SPLp/10))
-    return SPLtotal
+def calc_SPLalpha(B, sts, st2, K2):
+    # eq 27
+    SPLalpha = 10*math.log10((delta_s_star*M**5*L*D_bar_h)/re**2) + B*(sts/st2) + K2
+    return SPLalpha
+
+# --------------------------------------------------------------------------------------------------------------
+def SPL_TOT(SPLp, SPLs, SPLalpha):
+    SPL_TOT = 10*math.log10(10**(SPLalpha/10) + 10**(SPLs/10) + 10**(SPLp/10))
+    return SPL_TOT
