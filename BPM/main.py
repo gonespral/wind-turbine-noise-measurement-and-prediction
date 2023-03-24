@@ -2,10 +2,10 @@ import common
 import math
 import numpy as np
 import math
-import TE_Bluntness
+from TE_Bluntness import *
 from TipVortex import *
-#import LBL_VS
-import TBL_TE
+#from LBL_VS import *
+from TBL_TE import *
 import matplotlib.pyplot as plt
 
 """
@@ -75,24 +75,26 @@ def Blunt(f):
     eta = TE_Bluntness.eta(St, St_peak)
     return TE_Bluntness(h,M,L,Dh,r_e,G4,G5)
 
-# def TipVortex(f):
-#     l = l(c, alpha_tip)
-#     M_max = M_max(M, alpha_tip)
-#     st = st(f, l, U_max)
-#     return SPL_tip(M, M_max, l, Dh, r_e, st)
+def TipVortex(f):
+    l = lfunc(c, alpha_tip)
+    M_max = M_maximum(M, alpha_tip)
+    st = stNum(f, l, U_max)
+    return SPL_tip(M, M_max, l, Dh, r_e, st)
 
 # def LBLVS(f):
 #     return LBL_VS.SPL_LBL()
 
+f = np.arange(0,10000)
 
-#SPL = TipVortex(200)
-print(l(c,alpha_tip))
-
+SPL = []
+for i in range(len(f)):
+    SPL.append(TipVortex(f[i]))
 
 def plot(f,SPL):
     plt.plot(f, SPL)
-    plt.title("TBL")
+    plt.title("Tip Vortex")
     plt.xlabel("Frequency")
     plt.ylabel("SPL")
     plt.show()
 
+plot(f,SPL)
