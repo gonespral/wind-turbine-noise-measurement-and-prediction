@@ -11,7 +11,7 @@ if not os.path.exists("processed"):
 sample_rate = 48128
 
 # Number of samples in each time step for time-frequency analysis
-time_step = sample_rate / 2
+sample_step = sample_rate / 2
 
 # Paths to the data files. Run download_files.py to download the data.
 # Corresponding files must be in the same order.
@@ -87,29 +87,20 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     df_wt_fft = pd.DataFrame({"freq": ax_freq_wt, "fft": np.abs(signal_fft_wt)})
     df_wt_fft = df_wt_fft.loc[df_wt_fft["freq"] > 0]
 
-    # Denoise the WT signal - this is done by subtracting the BG FFT from the WT FFT.
-    print("Denoising WT signal...")
+    # De-noise the WT signal - this is done by subtracting the BG FFT from the WT FFT.
+    print("De-noising WT signal...")
     df_wt_bg_fft = df_wt_fft.copy()
     df_wt_bg_fft["fft"] = df_wt_bg_fft["fft"] - df_bg_fft["fft"]
-    df_wt_bg_fft.loc[df_wt_bg_fft["fft"] < 0, "fft"] = 0
-
-    # Append to list
-    # df_bg_mean_list.append(df_bg_mean)
-    # df_wt_mean_list.append(df_wt_mean)
-    # np_bg_mean_list.append(np_bg_mean)
-    # np_wt_mean_list.append(np_wt_mean)
-    # df_bg_fft_list.append(df_bg_fft)
-    # df_wt_fft_list.append(df_wt_fft)
-    # df_bg_wt_fft_list.append(df_wt_bg_fft)
+    df_wt_bg_fft.loc[df_wt_bg_fft["fft"] < 0, "fft"] = 0 # Remove negative values
 
     # Now calculate time-dependent FFT
     # Iterate over every sample_rate/2 samples
 
-    print(f"Evaluating FFT in time-frequency plane with {time_step}...")
+    print(f"Evaluating FFT in time-frequency plane with time_step of {sample_step} samples...")
     df_bg_fft_t = pd.DataFrame()
     df_wt_fft_t = pd.DataFrame()
 
-    for sample in range(0, len(df_bg_mean), int(time_step)):
+    for sample in range(0, len(df_bg_mean), int(sample_step)):
         # Calculate the FFT
         signal_fft_bg = np.fft.fft(np_bg_mean[sample:sample + int(sample_rate / 2)])
         signal_fft_wt = np.fft.fft(np_wt_mean[sample:sample + int(sample_rate / 2)])
@@ -143,11 +134,12 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     data_dict = {"v_inf": v_inf,
                  "df_bg_mean": df_bg_mean,
                  "df_wt_mean": df_wt_mean,
-                 "np_bg_mean": np_bg_mean,
-                 "np_wt_mean": np_wt_mean,
                  "df_bg_fft": df_bg_fft,
                  "df_wt_fft": df_wt_fft,
-                 "df_wt_bg_fft": df_wt_bg_fft}
+                 "df_wt_bg_fft": df_wt_bg_fft,
+                 "df_bg_fft_t": df_bg_fft_t,
+                 "df_wt_fft_t": df_wt_fft_t,
+                 "df_wt_bg_fft_t": df_wt_bg_fft_t}
 
     with open(filename, "wb") as f:
         pickle.dump(data_dict, f)
