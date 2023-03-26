@@ -2,8 +2,8 @@
 This script contains various plotting functions for the processed data.
 """
 
-import seaborn as sns  # for plotting
-import matplotlib.pyplot as plt  # for plotting
+import seaborn as sns
+import matplotlib.pyplot as plt
 import pickle
 
 # Configuration parameters
@@ -30,6 +30,11 @@ for path in pickle_paths:
         pickle_files.append(pickle.load(f))
     print(f"Loaded {path}. Found keys: {pickle_files[-1].keys()}")
 print()
+
+# Set matplotlib colour scheme for plots
+# Possible values: "deep", "muted", "pastel", "bright", "dark", "colorblind", "Paired", "Set2", "Set1", "Set3",
+# "tab10", "tab20", "tab20b", "tab20c", "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3"
+sns.set_palette("bright")
 
 
 # Format for accessing data in data_files:
@@ -233,7 +238,7 @@ def plot_waterfall(index: int = 0, modes: list = ["denoised"]) -> None:
         df_bg_ = pickle_files[index]["df_bg_fft_t"]
         sns.heatmap(df_bg_.pivot("sample", "freq", "fft"), ax=ax[j], cmap="viridis", vmin=vmin, vmax=vmax)
         ax[j].set_xscale(x_scale)
-        ax[j].set_xlim(x_lim_0 / 2, x_lim_1 / 2)
+        ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
         ax[j].set_ylabel("Sample")
         ax[j].set_title(f"Background {pickle_files[index]['v_inf']}m/s")
@@ -245,7 +250,7 @@ def plot_waterfall(index: int = 0, modes: list = ["denoised"]) -> None:
         df_wt_ = pickle_files[index]["df_wt_fft_t"]
         sns.heatmap(df_wt_.pivot("sample", "freq", "fft"), ax=ax[j], cmap="viridis", vmin=vmin, vmax=vmax)
         ax[j].set_xscale(x_scale)
-        ax[j].set_xlim(x_lim_0 / 2, x_lim_1 / 2)
+        ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
         ax[j].set_ylabel("Sample")
         ax[j].set_title(f"Wind Turbine {pickle_files[index]['v_inf']}m/s")
@@ -257,7 +262,7 @@ def plot_waterfall(index: int = 0, modes: list = ["denoised"]) -> None:
         df_wt_bg_ = pickle_files[index]["df_wt_bg_fft_t"]
         sns.heatmap(df_wt_bg_.pivot("sample", "freq", "fft"), ax=ax[j], cmap="viridis", vmin=vmin, vmax=vmax)
         ax[j].set_xscale(x_scale)
-        ax[j].set_xlim(x_lim_0 / 2, x_lim_1 / 2)
+        ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
         ax[j].set_ylabel("Sample")
         ax[j].set_title(f"Wind Turbine - Background (de-noised) {pickle_files[index]['v_inf']}m/s")
@@ -266,6 +271,8 @@ def plot_waterfall(index: int = 0, modes: list = ["denoised"]) -> None:
 
 
 if __name__ == "__main__":
+    with open("misc/windmill.txt", "r") as f:
+        print(f.read())
     print("--- WIND TURBINE NOISE ANALYSIS TOOL ---\n Type 'info()' for a list of commands.")
 
     # noinspection PyUnresolvedReferences
