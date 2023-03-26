@@ -23,7 +23,7 @@ def m(h, delta_avg):
     if (h / delta_avg) <= 0.02:
         m = 0
     elif 0.02 < (h / delta_avg) <= 0.5:
-        m = 68.724 * ( h / delta_avg) + 1.35
+        m = 68.724 * ( h / delta_avg) - 1.35
     elif 0.5 < (h / delta_avg) <= 0.62:
         m = 308.475 * ( h / delta_avg) - 121.23
     elif 0.62 < (h / delta_avg) <= 1.15:
@@ -68,7 +68,7 @@ def G5(eta, eta0, k, m):
 
 def St_peak(h, delta_avg, psi):
     if (h / delta_avg) >= 0.2:
-        St_peak = (0.212 - 0.0045* psi)/( 1 + 0.235 * (h / delta_avg)**-1 - 0.0132 * (h / delta_avg)**-2)
+        St_peak = (0.212 - 0.0045* psi)/( 1 + 0.235 * (h / delta_avg)**(-1) - 0.0132 * (h / delta_avg)**-2)
     elif (h / delta_avg) < 0.2:
         St_peak = 0.1 * ( h / delta_avg) + 0.095 - 0.00243 * psi
     return St_peak 
