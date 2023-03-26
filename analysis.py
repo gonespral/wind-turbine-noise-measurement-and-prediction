@@ -1,10 +1,9 @@
 """
-This script contains various plotting functions for the processed data. Pick which one to use at the bottom.
+This script contains various plotting functions for the processed data.
 """
 
 import seaborn as sns  # for plotting
 import matplotlib.pyplot as plt  # for plotting
-from IPython import embed
 import pickle
 
 # Configuration parameters
@@ -67,10 +66,11 @@ def info():
 def plot_fft(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> None:
     """
     Plot FFT of a set of measurements. Can plot background noise, wind turbine noise, or de-noised wind turbine noise.
+    :param modes: mode to plot. Can be "bg", "wt", or "denoised"
     :param indices: indices of the data files to plot
-    :param mode: mode to plot. Can be "bg", "wt", or "denoised"
     :return:
     """
+
     valid_modes = ["bg", "wt", "denoised"]
     for mode in modes:
         if mode not in valid_modes:
@@ -141,6 +141,7 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
     :param modes: mode to plot. Can be "bg", "wt", or "denoised"
     :return:
     """
+
     valid_modes = ["bg", "wt", "denoised"]
     for mode in modes:
         if mode not in valid_modes:
@@ -159,9 +160,10 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
     if "bg" in modes:
         for i in indices:
             df_bg_fft_ = pickle_files[i]["df_bg_fft"]
-            ax[j].plot(df_bg_fft_["freq"],
-                       df_bg_fft_["psd"],
-                       label=f"{pickle_files[i]['v_inf']}m/s")
+            # Use ax.psd() instead of ax.plot() to plot PSD
+            ax[j].psd(x=df_bg_fft_["fft"],
+                      Fs=sample_rate,
+                      label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
@@ -175,9 +177,9 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
     if "wt" in modes:
         for i in indices:
             df_wt_fft_ = pickle_files[i]["df_wt_fft"]
-            ax[j].plot(df_wt_fft_["freq"],
-                       df_wt_fft_["psd"],
-                       label=f"{pickle_files[i]['v_inf']}m/s")
+            ax[j].psd(x=df_wt_fft_["fft"],
+                      Fs=sample_rate,
+                      label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
@@ -191,9 +193,9 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
     if "denoised" in modes:
         for i in indices:
             df_wt_bg_fft_ = pickle_files[i]["df_wt_bg_fft"]
-            ax[j].plot(df_wt_bg_fft_["freq"],
-                       df_wt_bg_fft_["psd"],
-                       label=f"{pickle_files[i]['v_inf']}m/s")
+            ax[j].psd(x=df_wt_bg_fft_["fft"],
+                      Fs=sample_rate,
+                      label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
@@ -207,7 +209,7 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
 def plot_waterfall(index: int = 0, modes: list = ["denoised"]) -> None:
     """
     Plot waterfall of a set of measurements. Can plot background noise, wind turbine noise, or de-noised wind turbine noise.
-    :param indices: indices of the data files to plot
+    :param index: index of the data file to plot
     :param modes: mode to plot. Can be "bg", "wt", or "denoised"
     :return:
     """
