@@ -59,3 +59,5 @@ def SPL_tip(M, M_max, l, D_h, r_e, st):
     SPL = (10 * np.log10((M**2 * M_max**3 * l**2 * D_h) / (r_e**2))) - (30.5 * ((np.log10(st) + 0.3)**2)) + 126
 
     return SPL
+
+    #print(nothing)
