@@ -4,8 +4,13 @@ import numpy as np
 import math
 from TE_Bluntness import *
 from TipVortex import *
+<<<<<<< HEAD
 #from LBL_VS import *
 from TBL_TE_functions import *
+=======
+from LBL_VS import *
+from TBL_TE import *
+>>>>>>> b6a1f3d605034e8334778195d6993a3dd926990a
 import matplotlib.pyplot as plt
 
 """
@@ -27,9 +32,9 @@ r_e = common.r_e(0, 0, 1.775, 1.34)
 #Boundary layer thickness              
 delta = 0
 #displacement thickness
-delta_p = 0
+delta_p = 0.01
 #displacement thickness of suction side of airfoil
-delta_s = 0
+delta_s = 0.02
 #Angle from source streamwise axis                           
 Theta_e = np.pi / 2  
 #Angle from source source lateral y axis                       
@@ -41,7 +46,7 @@ T = 288.15
 #chord m                           
 c = 0.15    
 #angle of attack of tip                          
-alpha_tip = 2  
+alpha_tip = 18 
  #max flow vel                      
 U_max = 8 
 #speed of sound  
@@ -63,17 +68,17 @@ Initializing frequency bands
 """
 
 def Blunt(f):
-    delta_avg = TE_Bluntness.delta_avg(delta_p, delta_s)
-    mu = TE_Bluntness.mu(h, delta_avg)
-    m = TE_Bluntness.m(h, delta_avg)
-    eta0 = TE_Bluntness.eta0(m, mu)
-    k = TE_Bluntness.k(eta0, m)
-    St = TE_Bluntness.St(f, h, U)
-    G4 = TE_Bluntness.G4(h, delta_avg, psi)
-    G5 = TE_Bluntness.G5(eta, eta0, k, m)
-    St_peak = TE_Bluntness.St_peak(h, delta_avg, psi)
-    eta = TE_Bluntness.eta(St, St_peak)
-    return TE_Bluntness(h,M,L,Dh,r_e,G4,G5)
+    delta_avg = delta_avg1(delta_p, delta_s)
+    mu = mu1(h, delta_avg)
+    m = m1(h, delta_avg)
+    eta0 = eta01(m, mu)
+    k = k1(eta0, m, mu)
+    St = St1(f, h, U)
+    G4 = G41(h, delta_avg, psi)
+    St_peak = St_peak1(h, delta_avg, psi)
+    eta = eta1(St, St_peak)
+    G5 = G51(eta, eta0, k, m, mu) 
+    return SPL_BLUNT1(h,M,L,Dh,r_e,G4,G5)
 
 def TipVortex(f):
     l = lfunc(c, alpha_tip)
@@ -81,8 +86,19 @@ def TipVortex(f):
     st = stNum(f, l, U_max)
     return SPL_tip(M, M_max, l, Dh, r_e, st)
 
-# def LBLVS(f):
-#     return LBL_VS.SPL_LBL()
+def LBL(f):
+    st_prime = st_prime_one(Reynolds)
+    st_prime_peak = st_peak(alpha_star, st_prime)
+    spectral_shape = G_1(f, delta, U, st_prime_peak)
+    Reynolds_0 = Reynolds_zero(alpha_star)
+    peak_scaled_level = G_2(Reynolds, Reynolds_0)
+    angle_dependent_level = G_3(alpha_star)
+    return SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level)
+
+
+def TBL(f):
+    stp = calc
+
 
 def TBL_TE(f):
     stp = calc_stp(f, delta_p, U)
@@ -106,11 +122,13 @@ f = np.arange(0,10000)
 
 SPL = []
 for i in range(len(f)):
-    SPL.append(TipVortex(f[i]))
+    SPL.append(Blunt(f[i]))
+
+print(SPL)
 
 def plot(f,SPL):
     plt.plot(f, SPL)
-    plt.title("Tip Vortex")
+    plt.title("LBL")
     plt.xlabel("Frequency")
     plt.ylabel("SPL")
     plt.show()
