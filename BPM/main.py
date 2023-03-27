@@ -54,7 +54,9 @@ M_c = 0.8 * M
 #directivity func                    
 Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)      
 #Reynolds number based on chord length                       
-Reynolds = rho * U * c / visc        
+Reynolds = rho * U * c / visc
+# Reynolds number based on pressure side boundary layer thickness displacement
+R_deltaPstar = delta_p*U/visc
 
 """
 Initializing frequency bands
@@ -109,7 +111,7 @@ def TBL_TE(f):
     B_max = calc_Bmax(b)
     A = calc_A(a, a0)
     B = calc_B(b, b0)
-    SPL_TBL = SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltaK1)
+    SPL_TBL = SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltak1)
 
 
 f = np.arange(0,10000)
