@@ -1,7 +1,5 @@
 import common
-import math
 import numpy as np
-import math
 from TE_Bluntness import *
 from TipVortex import *
 from LBL_VS import *
