@@ -15,19 +15,19 @@ import math
 
 # Strouhall numbers:
 # TODO: what is the difference between stp and sts?
-def calc_stp(f,delta_p_star,U):
+def calc_stp(f,delta_p_star,U): #USED
     '''Calculates Strouhall number St_p (float) as a function of f, delta_p*, and U (floats).'''
     # eq 31a
     stp = (f*delta_p_star)/U
     return stp
 
-def calc_sts(f,delta_s_star,U):
+def calc_sts(f,delta_s_star,U): #USED
     '''Calculates Strouhall number St_p (float) as a function of f, delta_p*, and U (floats).'''
     # eq 31b
     sts = (f*delta_s_star)/U
     return sts
 
-def calc_strouhall(M, alphastar):
+def calc_strouhall(M, alphastar): #USED
     # eqs 32, 33, 34
     st1 = .02*M**(-.6)
 
@@ -43,7 +43,7 @@ def calc_strouhall(M, alphastar):
     return st1, st2, st1bar
 
 
-def calc_a0(Rc):
+def calc_a0(Rc): #USED
     '''Calculates a0, a value at which the spectrum has a value of -20dB.'''
     # eq 38
     if Rc < 9.52*10**4:
@@ -57,7 +57,7 @@ def calc_a0(Rc):
 # ----------------------------------------------------------------------------------------------------------
 
 # Amplitude functions
-def amplitudefunctions(Rc,alphastar,M,R_deltaPstar):
+def amplitudefunctions(Rc,alphastar,M,R_deltaPstar): #USED
     '''Returns values for the amplitude functions K1, DeltaK1, and K2.'''
     # eqs 47, 48, 49, 50
     #coefficcients:
@@ -90,19 +90,19 @@ def amplitudefunctions(Rc,alphastar,M,R_deltaPstar):
 
     return K1, K2, deltaK1
 
-def calc_a(stp, sts, st1, st2, st1bar):
+def calc_a(stp, sts, st1, st2, st1bar): #USED
     # eq 37
     st = max(stp, sts)
     st_peak = max(st1, st2, st1bar)
     a = abs(math.log10(st/st_peak))
     return a
 
-def calc_b(sts, st2):
+def calc_b(sts, st2): #USED
     # eq 43
     b = abs(math.log10(sts/st2))
     return b
 
-def calc_b0(Rc):
+def calc_b0(Rc): #USED
     # eq 44
     if Rc < 9.52*10**4:
         b0 = .30
@@ -112,7 +112,7 @@ def calc_b0(Rc):
         b0 = .56
     return b0
 # -------------------------------------------------------------------------------------------------------------
-def calc_Amin(a):
+def calc_Amin(a): #USED
     # eq 35
     if a < .204:
         Amin = math.sqrt(67.552 - 886.788*a**2) - 8.219
@@ -122,7 +122,7 @@ def calc_Amin(a):
         Amin = -142.795*a**3 + 103.656*a**2 - 57.757*a +6.006
     return Amin
 
-def calc_Amax(a):
+def calc_Amax(a): #USED
     #eq 36
     if a < .13:
         Amax = math.sqrt(67.552 - 886.788*a**2) - 8.219
@@ -132,7 +132,7 @@ def calc_Amax(a):
         Amax = -4.669*a**3 + 3.491*a**2 - 16.699*a + 1.149
     return Amax
 
-def calc_Bmin(b):
+def calc_Bmin(b): #USED
     # eq 41
     if b < .13:
         Bmin = math.sqrt(16.888 - 886.788*b**2) - 4.109
@@ -142,7 +142,7 @@ def calc_Bmin(b):
         Bmin = -817.810*b**3 + 355.210*b**2 -135.024*b + 10.619
     return Bmin
 
-def calc_Bmax(b):
+def calc_Bmax(b): #USED
     # eq 42
     if b < .1:
         Bmax = math.sqrt(16.888 - 886.788*b**2) - 4.109
@@ -152,34 +152,23 @@ def calc_Bmax(b):
         Bmax = -80.541*b**3 + 44.174*b**2 - 39.381*b + 2.344
     return Bmax
 # -------------------------------------------------------------------------------------------------------------
-def calc_A(a,a0):
+def calc_A(a,a0): #USED
     # eqs 39, 40
     AR = (-20 - calc_Amin(a0))/(calc_Amax(a0)- calc_Amin(a0))
     A = calc_Amin(a) + AR*(calc_Amax(a)-calc_Amin(a))
     return A
 
-def calc_B(b,b0):
+def calc_B(b,b0): #USED
     # eqs 45, 46
     BR = (-20 - calc_Bmin(b0))/(calc_Bmax(b0)- calc_Bmin(b0))
     B = calc_Bmin(b) + BR*(calc_Bmax(b)-calc_Bmin(b))
     return B
-# -------------------------------------------------------------------------------------------------------------
-def calc_SPLp(A, stp, st1, K1, deltaK1):
-    # eq 25
-    SPLp = 10*math.log10((delta_p_star*M**5*L*D_bar_h)/re**2) + A*(stp/st1) + K1 - 3 + deltaK1
-    return SPLp
 
-def calc_SPLs(A, sts, st1, K1):
-    # eq 25
-    SPLp = 10*math.log10((delta_s_star*M**5*L*D_bar_h)/re**2) + A*(sts/st1) + K1 - 3
-    return SPLp
-
-def calc_SPLalpha(B, sts, st2, K2):
-    # eq 27
-    SPLalpha = 10*math.log10((delta_s_star*M**5*L*D_bar_h)/re**2) + B*(sts/st2) + K2
-    return SPLalpha
 
 # --------------------------------------------------------------------------------------------------------------
-def SPL_TOT(SPLp, SPLs, SPLalpha):
+def SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltaK1):
+    SPLp = 10*math.log10((delta_p*M**5*L*Dh)/r_e**2) + A*(stp/st1) + K1 - 3 + deltaK1
+    SPLs = 10*math.log10((delta_s*M**5*L*Dh)/r_e**2) + A*(sts/st1) + K1 - 3
+    SPLalpha = 10*math.log10((delta_s*M**5*L*Dh)/re**2) + B*(sts/st2) + K2
     SPL_TOT = 10*math.log10(10**(SPLalpha/10) + 10**(SPLs/10) + 10**(SPLp/10))
     return SPL_TOT
