@@ -4,13 +4,9 @@ import numpy as np
 import math
 from TE_Bluntness import *
 from TipVortex import *
-<<<<<<< HEAD
-#from LBL_VS import *
 from TBL_TE_functions import *
-=======
 from LBL_VS import *
-from TBL_TE import *
->>>>>>> b6a1f3d605034e8334778195d6993a3dd926990a
+from TBL_TE_functions import *
 import matplotlib.pyplot as plt
 
 """
