@@ -91,6 +91,10 @@ def LBL(f):
     return SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level)
 
 
+def TBL(f):
+    stp = calc
+
+
 f = np.arange(0,10000)
 
 SPL = []
