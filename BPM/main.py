@@ -27,9 +27,9 @@ r_e = common.r_e(0, 0, 1.775, 1.34)
 #Boundary layer thickness              
 delta = 0
 #displacement thickness
-delta_p = 0
+delta_p = 0.01
 #displacement thickness of suction side of airfoil
-delta_s = 0
+delta_s = 0.02
 #Angle from source streamwise axis                           
 Theta_e = np.pi / 2  
 #Angle from source source lateral y axis                       
@@ -41,7 +41,7 @@ T = 288.15
 #chord m                           
 c = 0.15    
 #angle of attack of tip                          
-alpha_tip = 2  
+alpha_tip = 18 
  #max flow vel                      
 U_max = 8 
 #speed of sound  
@@ -63,17 +63,17 @@ Initializing frequency bands
 """
 
 def Blunt(f):
-    delta_avg = TE_Bluntness.delta_avg(delta_p, delta_s)
-    mu = TE_Bluntness.mu(h, delta_avg)
-    m = TE_Bluntness.m(h, delta_avg)
-    eta0 = TE_Bluntness.eta0(m, mu)
-    k = TE_Bluntness.k(eta0, m)
-    St = TE_Bluntness.St(f, h, U)
-    G4 = TE_Bluntness.G4(h, delta_avg, psi)
-    G5 = TE_Bluntness.G5(eta, eta0, k, m)
-    St_peak = TE_Bluntness.St_peak(h, delta_avg, psi)
-    eta = TE_Bluntness.eta(St, St_peak)
-    return TE_Bluntness(h,M,L,Dh,r_e,G4,G5)
+    delta_avg = delta_avg1(delta_p, delta_s)
+    mu = mu1(h, delta_avg)
+    m = m1(h, delta_avg)
+    eta0 = eta01(m, mu)
+    k = k1(eta0, m, mu)
+    St = St1(f, h, U)
+    G4 = G41(h, delta_avg, psi)
+    St_peak = St_peak1(h, delta_avg, psi)
+    eta = eta1(St, St_peak)
+    G5 = G51(eta, eta0, k, m, mu) 
+    return SPL_BLUNT1(h,M,L,Dh,r_e,G4,G5)
 
 def TipVortex(f):
     l = lfunc(c, alpha_tip)
@@ -92,6 +92,7 @@ for i in range(len(f)):
 
 def plot(f,SPL):
     plt.plot(f, SPL)
+    plt.ylim((0,30))
     plt.title("Tip Vortex")
     plt.xlabel("Frequency")
     plt.ylabel("SPL")
