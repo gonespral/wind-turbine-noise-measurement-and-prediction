@@ -102,7 +102,7 @@ def TBL_TE(f):
     st1, st2, st1bar = calc_strouhall(M, alpha_star)
     a0 = calc_a0(Reynolds)
     b0 = calc_b0(Reynolds)
-    K1, K2, deltak1 = amplitudefunctions(Reynolds, M, R_deltaPstar)
+    K1, K2, deltak1 = amplitudefunctions(Reynolds, M, R_deltaPstar) # I can't figure out what R_deltaPstar in the literature refers to
     a = calc_a(stp, sts, st1, st2, st1bar)
     b = calc_b(sts, st2)
     A_min = calc_Amin(a)
