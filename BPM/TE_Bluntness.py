@@ -80,15 +80,12 @@ def G51(eta, eta0, k, m, mu):
         G5 = -155.543 * eta + 4.375
     return G5
 
-<<<<<<< Updated upstream
 def St_peak(h, delta_avg, psi):
     if (h / delta_avg) >= 0.2:
         St_peak = (0.212 - 0.0045* psi)/( 1 + 0.235 * (h / delta_avg)**(-1) - 0.0132 * (h / delta_avg)**-2)
     elif (h / delta_avg) < 0.2:
         St_peak = 0.1 * ( h / delta_avg) + 0.095 - 0.00243 * psi
     return St_peak 
-=======
->>>>>>> Stashed changes
 
 def SPL_BLUNT1(h, M, L, D_h, r_e, G4, G5):
     SPL_BLUNT = 10* np.log10(h * M**5.5 * L * D_h / r_e**2 ) + G4 + G5

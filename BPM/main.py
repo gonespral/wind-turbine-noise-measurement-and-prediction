@@ -4,7 +4,7 @@ import numpy as np
 import math
 from TE_Bluntness import *
 from TipVortex import *
-#from LBL_VS import *
+from LBL_VS import *
 from TBL_TE import *
 import matplotlib.pyplot as plt
 
@@ -81,19 +81,27 @@ def TipVortex(f):
     st = stNum(f, l, U_max)
     return SPL_tip(M, M_max, l, Dh, r_e, st)
 
-# def LBLVS(f):
-#     return LBL_VS.SPL_LBL()
+def LBL(f):
+    st_prime = st_prime_one(Reynolds)
+    st_prime_peak = st_peak(alpha_star, st_prime)
+    spectral_shape = G_1(f, delta, U, st_prime_peak)
+    Reynolds_0 = Reynolds_zero(alpha_star)
+    peak_scaled_level = G_2(Reynolds, Reynolds_0)
+    angle_dependent_level = G_3(alpha_star)
+    return SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level)
+
 
 f = np.arange(0,10000)
 
 SPL = []
 for i in range(len(f)):
-    SPL.append(TipVortex(f[i]))
+    SPL.append(Blunt(f[i]))
+
+print(SPL)
 
 def plot(f,SPL):
     plt.plot(f, SPL)
-    plt.ylim((0,30))
-    plt.title("Tip Vortex")
+    plt.title("LBL")
     plt.xlabel("Frequency")
     plt.ylabel("SPL")
     plt.show()
