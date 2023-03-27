@@ -56,12 +56,9 @@ Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)
 Reynolds = rho * U * c / visc
 # Reynolds number based on pressure side boundary layer thickness displacement
 R_deltaPstar = delta_p*U/visc
+# ---------
 
-"""
-Initializing frequency bands
-
-"""
-
+# Initializing frequency bands
 def Blunt(f):
     delta_avg = delta_avg1(delta_p, delta_s)
     mu = mu1(h, delta_avg)
@@ -96,13 +93,12 @@ def TBL_TE(f):
     st1, st2, st1bar = calc_strouhall(M, alpha_star)
     a0 = calc_a0(Reynolds)
     b0 = calc_b0(Reynolds)
-    K1, K2, deltak1 = amplitudefunctions(Reynolds, M, R_deltaPstar) # I can't figure out what R_deltaPstar in the literature refers to
+    K1, K2, deltak1 = amplitudefunctions(Reynolds, alpha_star, M, R_deltaPstar)
     a = calc_a(stp, sts, st1, st2, st1bar)
     b = calc_b(sts, st2)
     A = calc_A(a, a0)
     B = calc_B(b, b0)
     return SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltak1)
-
 
 def CalculateSPL(): 
     f = np.arange(0,10000)
