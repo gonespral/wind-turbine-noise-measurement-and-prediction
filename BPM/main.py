@@ -1,11 +1,10 @@
 import common
-import math
 import numpy as np
-import math
 from TE_Bluntness import *
 from TipVortex import *
+from TBL_TE_functions import *
 from LBL_VS import *
-from TBL_TE import *
+from TBL_TE_functions import *
 import matplotlib.pyplot as plt
 
 """
@@ -89,6 +88,28 @@ def LBL(f):
     peak_scaled_level = G_2(Reynolds, Reynolds_0)
     angle_dependent_level = G_3(alpha_star)
     return SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level)
+
+
+def TBL(f):
+    stp = calc
+
+
+def TBL_TE(f):
+    stp = calc_stp(f, delta_p, U)
+    sts = calc_sts(f, delta_s, U)
+    st1, st2, st1bar = calc_strouhall(M, alpha_star)
+    a0 = calc_a0(Reynolds)
+    b0 = calc_b0(Reynolds)
+    K1, K2, deltak1 = amplitudefunctions(Reynolds, M, R_deltaPstar) # I can't figure out what R_deltaPstar in the literature refers to
+    a = calc_a(stp, sts, st1, st2, st1bar)
+    b = calc_b(sts, st2)
+    A_min = calc_Amin(a)
+    A_max = calc_Amax(a)
+    B_min = calc_Bmin(b)
+    B_max = calc_Bmax(b)
+    A = calc_A(a, a0)
+    B = calc_B(b, b0)
+    SPL_TBL = SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltaK1)
 
 
 f = np.arange(0,10000)
