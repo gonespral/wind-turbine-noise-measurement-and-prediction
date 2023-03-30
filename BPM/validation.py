@@ -23,7 +23,7 @@ L = 0.1
 #distance from source to receiver        
 r_e = 1 
 #Boundary layer thickness              
-delta = 0
+delta = 0.1
 #displacement thickness
 delta_p = 0.01
 #displacement thickness of suction side of airfoil
@@ -107,7 +107,7 @@ def TBL_TE(f):
 
 
 def CalculateSPL(): 
-    f = np.arange(0,10000)
+    f = np.arange(1,10000)
     SPLTip = []
     SPLBlunt = []
     SPLLBL = []
