@@ -49,7 +49,7 @@ def calc_a0(Rc): #USED
     if Rc < 9.52*10**4:
         a0 = .57
     elif 9.52*10**4 <= Rc <= 8.57*10**5:
-        a0 = (-9.57*10**(-13))*((Rc-8.57*10**5)**2) + 1.13
+        a0 = (-9.57*10**(-13))*(Rc-8.57*10**5)**2 + 1.13
     else:
         a0 = 1.13
     return a0
@@ -90,12 +90,9 @@ def amplitudefunctions(Rc,alphastar,M,R_deltaPstar): #USED
 
     return K1, K2, deltaK1
 
-def calc_a(type, stp, sts, st1, st2, st1bar): #USED
+def calc_a(stp, sts, st1, st2, st1bar): #USED
     # eq 37
-    if type == 'p':
-        st = stp
-    elif type == 's':
-        st = sts
+    st = max(stp, sts)
     st_peak = max(st1, st2, st1bar)
     a = abs(math.log10(st/st_peak))
     return a
@@ -169,9 +166,9 @@ def calc_B(b,b0): #USED
 
 
 # --------------------------------------------------------------------------------------------------------------
-def SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltaK1, delta_p, M, L, Dh, r_e, delta_s):
+def SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltaK1):
     SPLp = 10*math.log10((delta_p*M**5*L*Dh)/r_e**2) + A*(stp/st1) + K1 - 3 + deltaK1
     SPLs = 10*math.log10((delta_s*M**5*L*Dh)/r_e**2) + A*(sts/st1) + K1 - 3
-    SPLalpha = 10*math.log10((delta_s*M**5*L*Dh)/r_e**2) + B*(sts/st2) + K2
+    SPLalpha = 10*math.log10((delta_s*M**5*L*Dh)/re**2) + B*(sts/st2) + K2
     SPL_TOT = 10*math.log10(10**(SPLalpha/10) + 10**(SPLs/10) + 10**(SPLp/10))
     return SPL_TOT
