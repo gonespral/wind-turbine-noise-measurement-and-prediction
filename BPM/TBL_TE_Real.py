@@ -2,11 +2,7 @@ import numpy as np
 
 
 # we need :  ( M, U, L, Dh, re, f, alphastar,Rc, R_deltap, St_peak, delta_s, delta_p)
-# f is 
-# Rc is 
-#St_peak is 
-#detla_s is
-#delta_p is
+
 
 
 def gamma1(M):
@@ -69,7 +65,6 @@ def St_11(M):
     return St_1
 
 #this is in deg (alphastar)
-
 def St_21(St_1, alphastar):
     if alphastar < 1.33:
         St_2 = St_1 * 1
@@ -83,6 +78,9 @@ def St_1mean1(St_1, St_2):
     St_1mean = (St_1 + St_2) / 2 
     return St_1mean
 
+def St_peak1(St_1, St_2, St_1mean):
+    St_peak = max(St_1, St_2, St_1mean)
+    return St_peak
 
 
 
@@ -158,7 +156,7 @@ def A_min1(a):
     return A_min
 
 def A_max1(a):
-    if a < 0.13
+    if a < 0.13:
         A_max = (67.552 - 886.788 a**2)**0.5 - 8.219
     elif 0.13 <= a <= 0.321:
         A_max = -15.901 * a + 1.098
