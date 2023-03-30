@@ -23,7 +23,7 @@ L = 0.1
 #distance from source to receiver        
 r_e = 1 
 #Boundary layer thickness              
-delta = 0
+delta = 0.1
 #displacement thickness
 delta_p = 0.01
 #displacement thickness of suction side of airfoil
@@ -33,7 +33,7 @@ Theta_e = np.pi / 2
 #Angle from source source lateral y axis                       
 Phi_e = np.pi / 2   
 #effective aerodynamic angle of attack                        
-alpha_star = 1.516 * np.pi / 180   * 0  
+alpha_star = 1.516 * np.pi / 180  
 #temperature K                 
 T = 288.15    
 #chord m                           
@@ -93,21 +93,10 @@ def LBL(f):
     return SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level)
 
 def TBL_TE(f):
-    stp = calc_stp(f, delta_p, U)
-    sts = calc_sts(f, delta_s, U)
-    st1, st2, st1bar = calc_strouhall(M, alpha_star)
-    a0 = calc_a0(Reynolds)
-    b0 = calc_b0(Reynolds)
-    K1, K2, deltak1 = amplitudefunctions(Reynolds, M, R_deltaPstar) # I can't figure out what R_deltaPstar in the literature refers to
-    a = calc_a(stp, sts, st1, st2, st1bar)
-    b = calc_b(sts, st2)
-    A = calc_A(a, a0)
-    B = calc_B(b, b0)
-    return SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltak1)
-
+    
 
 def CalculateSPL(): 
-    f = np.arange(0,10000)
+    f = np.arange(1,10000)
     SPLTip = []
     SPLBlunt = []
     SPLLBL = []
@@ -136,7 +125,7 @@ def plot():
     # axs[1, 1].set_title('TBL-TE')
     # axs[1, 1].set_ylim((0, 100))
 
-
+    print(SPLLBL)
     for ax in axs.flat:
         ax.set(xlabel='Frequency', ylabel='SPL')
     # for ax in axs.flat:
