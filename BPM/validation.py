@@ -93,18 +93,7 @@ def LBL(f):
     return SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level)
 
 def TBL_TE(f):
-    stp = calc_stp(f, delta_p, U)
-    sts = calc_sts(f, delta_s, U)
-    st1, st2, st1bar = calc_strouhall(M, alpha_star)
-    a0 = calc_a0(Reynolds)
-    b0 = calc_b0(Reynolds)
-    K1, K2, deltak1 = amplitudefunctions(Reynolds, M, R_deltaPstar) # I can't figure out what R_deltaPstar in the literature refers to
-    a = calc_a(stp, sts, st1, st2, st1bar)
-    b = calc_b(sts, st2)
-    A = calc_A(a, a0)
-    B = calc_B(b, b0)
-    return SPL_TOT(A, B, stp, sts, st1, st2, K1, K2, deltak1)
-
+    
 
 def CalculateSPL(): 
     f = np.arange(1,10000)
