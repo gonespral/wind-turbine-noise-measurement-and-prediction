@@ -1,28 +1,25 @@
 '''File to house the LBL-VS calculation procedure'''
-import math
 import numpy as np
 
 
 def st_prime_one(Reynolds):
-    st_prime = 0
-    if Reynolds <= 1.3 * 10 ** 5:
+    if Reynolds <= 1.3 * 10**5:
         st_prime = 0.18
-    elif 1.3 * 10 ** 5 < Reynolds <= 4.0 * 10 ** 5:
-        st_prime = 0.001756 * Reynolds ** 0.3931
-    elif Reynolds > 4.0 * 10 ** 5:
+    elif 1.3 * 10**5 < Reynolds <= 4.0 * 10**5:
+        st_prime = 0.001756 * Reynolds**0.3931
+    elif Reynolds > 4.0 * 10**5:
         st_prime = 0.28
     return st_prime
 
 
 def st_peak(alpha_star, st_prime):
-    st_prime_peak = st_prime * 10 ** (-0.04 * alpha_star)
+    st_prime_peak = st_prime * 10**(-0.04 * alpha_star)
     return st_prime_peak
 
 
 def G_1(f, delta, U, st_prime_peak):
     st = f * delta / U
     e = st / st_prime_peak
-    Spectral_shape = 0
     if e <= 0.5974:
         Spectral_shape = 39.8 * np.log10(e) - 11.12
     elif 0.5974 < e <= 0.8545:
@@ -62,10 +59,10 @@ def G_2(Reynolds, Reynolds_0):
 
 def G_3(alpha_star):
     Angle_dependent_level = 171.04 - 3.03 * alpha_star
-    return Angle_dependent_level * alpha_star
+    return Angle_dependent_level
 
 
 def SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level):
     SPL = 10 * np.log10(
-        delta * M ** 5 * L * Dh / (r_e ** 2)) + spectral_shape + peak_scaled_level + angle_dependent_level
+        delta * M**5 * L * Dh / (r_e ** 2)) + spectral_shape + peak_scaled_level + angle_dependent_level
     return SPL

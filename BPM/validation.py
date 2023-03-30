@@ -33,7 +33,7 @@ Theta_e = np.pi / 2
 #Angle from source source lateral y axis                       
 Phi_e = np.pi / 2   
 #effective aerodynamic angle of attack                        
-alpha_star = 1.516 * np.pi / 180   * 0  
+alpha_star = 1.516 * np.pi / 180  
 #temperature K                 
 T = 288.15    
 #chord m                           
@@ -136,7 +136,7 @@ def plot():
     # axs[1, 1].set_title('TBL-TE')
     # axs[1, 1].set_ylim((0, 100))
 
-
+    print(SPLLBL)
     for ax in axs.flat:
         ax.set(xlabel='Frequency', ylabel='SPL')
     # for ax in axs.flat:
