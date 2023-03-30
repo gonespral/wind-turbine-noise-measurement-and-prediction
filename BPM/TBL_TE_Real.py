@@ -101,14 +101,6 @@ def b1(St_s, St_2):
     b = abs(np.log10(St_s / St_2))
     return(b)
 
-def B_R1(B_min, B_max):
-    B_R = (-20 - B_min) / (B_max - B_min)
-    return B_R
-
-def B1(B_min, B_R, B_max):
-    B = B_min + B_R * (B_max - B_min)
-    return B
-
 def B_min1(b):
     if b < 0.13:
         B_min = (16.888 - 886.788 * b**2)**0.5 - 4.109
@@ -126,6 +118,14 @@ def B_max1(b):
     elif b > 0.187:
         B_max = -80.541 * b**3 + 44.174 * b**2 - 39.381 * b + 2.344
     return  B_max
+
+def B_R1(B_min, B_max):
+    B_R = (-20 - B_min) / (B_max - B_min)
+    return B_R
+
+def B1(B_min, B_R, B_max):
+    B = B_min + B_R * (B_max - B_min)
+    return B
 
 
 
@@ -163,7 +163,6 @@ def A_max1(a):
     elif a > 0.321:
         A_max = -4.669 * a**3 + 3.491 * a**2 - 16.699 * a + 1.149
     return A_max
-
 
 def A_R1(A_min, A_max):
     A_R = (-20 - A_min) / (A_max - A_min)

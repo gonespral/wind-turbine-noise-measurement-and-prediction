@@ -112,6 +112,15 @@ def TBL_TE(f):
     B_max = TBL.B_max1(b)
     B_R = TBL.B_R1(B_min, B_max)
     B = TBL.B1(B_min, B_R, B_max)
+    a0 = TBL.a01(Reynolds) # I started from here 
+    a = TBL.a1(St, St_peak) 
+    A_min = TBL.A_min1(a)
+    A_max = TBL.A_max1(a)
+    A_R = TBL.A_R1(A_min, A_max)
+    A = TBL.A1(A_min, A_R, A_max) 
+    SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
+    SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
+    SPL_TBLTE = TBL.TBLTE1(SPL_s, SPL_p)
     
 
 def CalculateSPL(): 
