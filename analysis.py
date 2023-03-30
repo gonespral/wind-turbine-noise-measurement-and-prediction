@@ -8,10 +8,10 @@ import pickle
 
 # Configuration parameters
 sample_rate = 48128
-n_smoothing = 10
 x_lim_0 = 1
 x_lim_1 = 20000
 x_scale = "log"
+y_scale = "linear"
 NFFT_val = 256
 vmin = 0
 vmax = 10
@@ -56,10 +56,10 @@ def info():
 
     print("--- Available variables ---")
     print(f"    sample_rate = {sample_rate}")
-    print(f"    n_smoothing = {n_smoothing}")
     print(f"    x_lim_0 = {x_lim_0}")
     print(f"    x_lim_1 = {x_lim_1}")
     print(f"    x_scale = {x_scale}")
+    print(f"    y_scale = {y_scale}")
     print(f"    NFFT_val = {NFFT_val}\n")
 
     print(f"--- Loaded pickle files ---")
@@ -95,12 +95,13 @@ def plot_fft(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
         for i in indices:
             df_bg_fft_ = pickle_files[i]["df_bg_fft"]
             ax[j].plot(df_bg_fft_["freq"],
-                       df_bg_fft_["fft"],
+                       df_bg_fft_["SPL"],
                        label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
+        ax[j].set_yscale(y_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
-        ax[j].set_ylabel("Amplitude")
+        ax[j].set_ylabel("SPL (dB)")
         ax[j].set_title("Background FFT")
         ax[j].legend()
 
@@ -111,12 +112,13 @@ def plot_fft(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
         for i in indices:
             df_wt_fft_ = pickle_files[i]["df_wt_fft"]
             ax[j].plot(df_wt_fft_["freq"],
-                       df_wt_fft_["fft"],
+                       df_wt_fft_["SPL"],
                        label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
+        ax[j].set_yscale(y_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
-        ax[j].set_ylabel("Amplitude")
+        ax[j].set_ylabel("SPL (dB)")
         ax[j].set_title("Wind Turbine FFT")
         ax[j].legend()
 
@@ -127,12 +129,13 @@ def plot_fft(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
         for i in indices:
             df_wt_bg_fft_ = pickle_files[i]["df_wt_bg_fft"]
             ax[j].plot(df_wt_bg_fft_["freq"],
-                       df_wt_bg_fft_["fft"],
+                       df_wt_bg_fft_["value"],
                        label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
+        ax[j].set_yscale(y_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
-        ax[j].set_ylabel("Amplitude")
+        ax[j].set_ylabel("Value")
         ax[j].set_title("Wind Turbine - Background (de-noised) FFT")
         ax[j].legend()
 
@@ -166,13 +169,14 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
         for i in indices:
             df_bg_fft_ = pickle_files[i]["df_bg_fft"]
             # Use ax.psd() instead of ax.plot() to plot PSD
-            ax[j].psd(x=df_bg_fft_["fft"],
+            ax[j].psd(x=df_bg_fft_["SPL"],
                       Fs=sample_rate,
                       label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
+        ax[j].set_yscale(y_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
-        ax[j].set_ylabel("Amplitude")
+        ax[j].set_ylabel("SPL (dB)")
         ax[j].set_title("Background PSD")
         ax[j].legend()
 
@@ -182,13 +186,14 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
     if "wt" in modes:
         for i in indices:
             df_wt_fft_ = pickle_files[i]["df_wt_fft"]
-            ax[j].psd(x=df_wt_fft_["fft"],
+            ax[j].psd(x=df_wt_fft_["SPL"],
                       Fs=sample_rate,
                       label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
+        ax[j].set_yscale(y_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
-        ax[j].set_ylabel("Amplitude")
+        ax[j].set_ylabel("SPL (dB)")
         ax[j].set_title("Wind Turbine PSD")
         ax[j].legend()
 
@@ -198,13 +203,14 @@ def plot_psd(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
     if "denoised" in modes:
         for i in indices:
             df_wt_bg_fft_ = pickle_files[i]["df_wt_bg_fft"]
-            ax[j].psd(x=df_wt_bg_fft_["fft"],
+            ax[j].psd(x=df_wt_bg_fft_["SPL"],
                       Fs=sample_rate,
                       label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
+        ax[j].set_yscale(y_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
-        ax[j].set_ylabel("Amplitude")
+        ax[j].set_ylabel("SPL (dB)")
         ax[j].set_title("Wind Turbine - Background (de-noised) PSD")
         ax[j].legend()
 

@@ -4,8 +4,8 @@ import numpy as np  # for FFT
 import os
 import pickle
 
-if not os.path.exists("processed"):
-    os.makedirs("processed")
+if not os.path.exists("data/processed"):
+    os.makedirs("data/processed")
 
 # Sample rate of the data
 sample_rate = 48128
@@ -67,19 +67,16 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     for col in df_wt_mean.columns:
         df_wt_mean[col] = df_wt_mean[col] * np.hamming(df_wt_mean.shape[0])
 
-    # Create numpy array as input for np.fft
-    np_bg_mean = df_bg_mean["mean"].values
-    np_wt_mean = df_wt_mean["mean"].values
-
     # Calculate the FFT
     print("Evaluating FFT...")
-    signal_fft_bg = np.fft.fft(np_bg_mean)
-    signal_fft_wt = np.fft.fft(np_wt_mean)
+    signal_fft_bg = np.fft.fft(df_bg_mean["mean"].values)
+    signal_fft_wt = np.fft.fft(df_wt_mean["mean"].values)
 
     # Calculate the frequency axis - this creates an array of the same size as the signal with the frequency of each
     # bin (in Hz).
-    ax_freq_bg = np.fft.fftfreq(np_bg_mean.size, d=1 / sample_rate)
-    ax_freq_wt = np.fft.fftfreq(np_wt_mean.size, d=1 / sample_rate)
+    ax_freq_bg = np.fft.fftfreq(df_bg_mean["mean"].values.size, d=1 / sample_rate)
+    ax_freq_wt = np.fft.fftfreq(df_wt_mean["mean"].values.size, d=1 / sample_rate)
+    print(f"Frequency resolution: {ax_freq_bg[1] - ax_freq_bg[0]} Hz")
 
     # Create new dataframe for FFT results (absolute value, only positive frequencies)
     df_bg_fft = pd.DataFrame({"freq": ax_freq_bg, "fft": np.abs(signal_fft_bg)})
@@ -91,7 +88,21 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     print("De-noising WT signal...")
     df_wt_bg_fft = df_wt_fft.copy()
     df_wt_bg_fft["fft"] = df_wt_bg_fft["fft"] - df_bg_fft["fft"]
-    df_wt_bg_fft.loc[df_wt_bg_fft["fft"] < 0, "fft"] = 0 # Remove negative values
+    # Remove negative values
+    df_wt_bg_fft.loc[df_wt_bg_fft["fft"] < 0, "fft"] = 0
+    # Set all positive FFT values to 1
+    df_wt_bg_fft.loc[df_wt_bg_fft["fft"] > 0, "fft"] = 1
+
+    # Calculate SPL (dB) : SPL = 20 * log10(FFT / 2e-5)
+    print("Calculating SPL...")
+    df_bg_fft["SPL"] = 20 * np.log10(df_bg_fft["fft"] / 2e-5)
+    df_wt_fft["SPL"] = 20 * np.log10(df_wt_fft["fft"] / 2e-5)
+    df_wt_bg_fft["SPL"] = 20 * np.log10(df_wt_bg_fft["fft"] / 2e-5)
+
+    # Rename column to SPL
+    df_bg_fft.columns = ["freq", "SPL"]
+    df_wt_fft.columns = ["freq", "SPL"]
+    df_wt_bg_fft.columns = ["freq", "value"]
 
     # Now calculate time-dependent FFT
     # Iterate over every sample_rate/2 samples
@@ -102,13 +113,13 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
 
     for sample in range(0, len(df_bg_mean), int(sample_step)):
         # Calculate the FFT
-        signal_fft_bg = np.fft.fft(np_bg_mean[sample:sample + int(sample_rate / 2)])
-        signal_fft_wt = np.fft.fft(np_wt_mean[sample:sample + int(sample_rate / 2)])
+        signal_fft_bg = np.fft.fft(df_bg_mean["mean"].values[sample:sample + int(sample_rate / 2)])
+        signal_fft_wt = np.fft.fft(df_wt_mean["mean"].values[sample:sample + int(sample_rate / 2)])
 
         # Calculate the frequency axis - this creates an array of the same size as the signal with the frequency of
         # each bin (in Hz).
-        ax_freq_bg = np.fft.fftfreq(np_bg_mean[sample:sample + int(sample_rate / 2)].size, d=1 / sample_rate)
-        ax_freq_wt = np.fft.fftfreq(np_wt_mean[sample:sample + int(sample_rate / 2)].size, d=1 / sample_rate)
+        ax_freq_bg = np.fft.fftfreq(df_bg_mean["mean"].values[sample:sample + int(sample_rate / 2)].size, d=1 / sample_rate)
+        ax_freq_wt = np.fft.fftfreq(df_wt_mean["mean"].values[sample:sample + int(sample_rate / 2)].size, d=1 / sample_rate)
 
         # Create new dataframe for FFT results (absolute value, only positive frequencies)
         df_bg_fft_sample = pd.DataFrame({"freq": ax_freq_bg, "fft": np.abs(signal_fft_bg)})
@@ -150,4 +161,4 @@ for bg_data_path, wt_data_path, v_inf in zip(bg_data_path_list, wt_data_path_lis
     else:
         raise FileNotFoundError("File not created")
 
-    print("Done")
+    print(f"Saved data: {data_dict.keys()}")
