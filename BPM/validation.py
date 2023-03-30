@@ -107,7 +107,7 @@ def TBL_TE(f):
 
 
 def CalculateSPL(): 
-    f = np.arange(0,10000)
+    f = np.arange(1,10000)
     SPLTip = []
     SPLBlunt = []
     SPLLBL = []
