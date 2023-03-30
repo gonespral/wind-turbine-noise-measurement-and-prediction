@@ -2,9 +2,10 @@ import common
 import numpy as np
 from TE_Bluntness import *
 from TipVortex import *
-from TBL_TE_functions import *
+import TBL_TE_functions as TBL
 from LBL_VS import *
 import matplotlib.pyplot as plt
+from TBL_TE_Real import *
 
 """
 Experimental Variables
@@ -93,6 +94,24 @@ def LBL(f):
     return SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level)
 
 def TBL_TE(f):
+    gamma = TBL.gamma1(M)
+    gamma0 = TBL.gamma01(M)
+    beta = TBL.beta1(M)
+    beta0 = TBL.beta01(M)
+    K1 = TBL.K11(Reynolds)
+    K2 = TBL.K21(alpha_star, gamma, gamma0, beta0, beta, K1)
+    deltaK1 = TBL.deltaK11(alpha_star, R_deltaPstar)
+    St_p = TBL.St_p1(f, delta_p, U)
+    St_s = TBL.St_s1(f, delta_s, U)
+    St_1 = TBL.St_11(M)
+    St_2 = TBL.St_21(St_1, alpha_star)
+    St_1mean = TBL.St_1mean1(St_1, St_2)
+    b0 = TBL.b01(Reynolds)
+    b = TBL.b1(St_s, St_2)
+    B_min = TBL.B_min1(b)
+    B_max = TBL.B_max1(b)
+    B_R = TBL.B_R1(B_min, B_max)
+    B = TBL.B1(B_min, B_R, B_max)
     
 
 def CalculateSPL(): 

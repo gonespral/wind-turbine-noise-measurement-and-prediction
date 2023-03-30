@@ -21,7 +21,7 @@ def beta01(M):
     beta0 = -34.19 * M - 13.82
     return beta0
 
-def K21(alphastar, gamma, gamma0, beta0, beta):
+def K21(alphastar, gamma, gamma0, beta0, beta, K1):
     if alphastar < (gamma0 - gamma):
         K2 = K1 - 1000
     elif (gamma0 - gamma) <= alphastar <= (gamma0 + gamma):
@@ -32,16 +32,16 @@ def K21(alphastar, gamma, gamma0, beta0, beta):
 
 def K11(Rc):
     if Rc < (2.47 * 10**5):
-        K1 = -4.31 * log10(Rc) + 156.3
+        K1 = -4.31 * np.log10(Rc) + 156.3
     elif (2.47 * 10**5) <= Rc <= (8 * 10**5):
-        K1 = -9 * log10(Rc) + 181.6
+        K1 = -9 * np.log10(Rc) + 181.6
     elif Rc > (8 * 10**5):
         K1 = 128.5
     return K1
 
-def deltaK11(alphastar, R_detlap):
-    if R_deltap <= 5000
-        deltaK1 = alphastar * (1.43 * log10(R_detlap) - 5.29)
+def deltaK11(alphastar, R_deltap):
+    if R_deltap <= 5000:
+        deltaK1 = alphastar * (1.43 * np.log10(R_deltap) - 5.29)
     else:
         deltaK1 = 0
     return deltaK1
@@ -98,7 +98,7 @@ def b01(Rc):
     return b0
 
 def b1(St_s, St_2):
-    b = abs( log10(St_s / St_2))
+    b = abs(np.log10(St_s / St_2))
     return(b)
 
 def B_R1(B_min, B_max):
@@ -110,7 +110,7 @@ def B1(B_min, B_R, B_max):
     return B
 
 def B_min1(b):
-    if b < 0.13
+    if b < 0.13:
         B_min = (16.888 - 886.788 * b**2)**0.5 - 4.109
     elif 0.13 <= b <= 0.145:
         B_min = -83.607 * b + 8.138
@@ -143,12 +143,12 @@ def a01(Rc):
     return a0
 
 def a1(St, St_peak):
-    a = abs( log10(St / St_peak))
+    a = abs(np.log10(St / St_peak))
     return(a)
 
 def A_min1(a):
-    if a < 0.204
-        A_min = (67.552 - 886.788 a**2)**0.5 - 8.219
+    if a < 0.204:
+        A_min = (67.552 - 886.788 * a**2)**0.5 - 8.219
     elif 0.204 <= a <= 0.244:
         A_min = -32.665 * a + 3.981
     elif a > 0.244:
@@ -157,7 +157,7 @@ def A_min1(a):
 
 def A_max1(a):
     if a < 0.13:
-        A_max = (67.552 - 886.788 a**2)**0.5 - 8.219
+        A_max = (67.552 - 886.788 * a**2)**0.5 - 8.219
     elif 0.13 <= a <= 0.321:
         A_max = -15.901 * a + 1.098
     elif a > 0.321:
@@ -184,20 +184,20 @@ def A1(A_min, A_R, A_max):
 #    return SPL_alpha
 
 def SPL_s1(delta_s, M, L, Dh, re, A, St_s, St_1, K1):
-    SPL_s = 10 * log10( (delta_s * M**5 * L * Dh) / re**2) + A * (St_s / St_1) + (K1 - 3)
+    SPL_s = 10 * np.log10( (delta_s * M**5 * L * Dh) / re**2) + A * (St_s / St_1) + (K1 - 3)
     return SPL_s
 
 def SPL_p1(delta_p, M, L, Dh, re, A, St_p, St_1, K1, deltaK1):
-    SPL_p = 10 * log10( (delta_p * M**5 * L * Dh) / re**2) + A * (St_p / St_1) + (K1 - 3) + deltaK1
+    SPL_p = 10 * np.log10( (delta_p * M**5 * L * Dh) / re**2) + A * (St_p / St_1) + (K1 - 3) + deltaK1
     return SPL_p
 
 #def SPL_tot1(SPL_alpha, SPL_s, SPL_p):
 #    SPL_tot = 10 * log10( 10**(SPL_alpha/10) + 10**(SPL_s/10) + 10**(SPL_p/10))
 #    return SPL_tot
 
-def SPL_TBL-TE1(SPL_s, SPL_p):
-    SPL_TBL-TE = 10 * log10(10**(SPL_s/10) + 10**(SPL_p/10))
-    return SPL_TBL-TE
+def SPL_TBLTE1(SPL_s, SPL_p):
+    SPL_TBLTE = 10 * np.log10(10**(SPL_s/10) + 10**(SPL_p/10))
+    return SPL_TBLTE
 
 
 
