@@ -63,11 +63,7 @@ def G_3(alpha_star):
 
 
 def SPL_LBL(delta, M, L, Dh, r_e, spectral_shape, peak_scaled_level, angle_dependent_level):
-<<<<<<< HEAD
     SPL = 10 * np.log10(delta * M**5 * L * Dh /( r_e**2)) + spectral_shape + peak_scaled_level + angle_dependent_level
-=======
-    SPL = 10 * np.log10(delta * M**5 * L * Dh /( r_e ** 2)) + spectral_shape + peak_scaled_level + angle_dependent_level
->>>>>>> f41a2875e8e951b110a0c3f891646900c81dc9b6
     return SPL
 
 
