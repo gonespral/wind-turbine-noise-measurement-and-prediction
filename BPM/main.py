@@ -104,14 +104,14 @@ def CalculateSPL():
     f = np.arange(0,10000)
     SPL = []
     for i in range(len(f)):
-        SPL.append(TBL_TE(f[i]))
+        SPL.append(LBL(f[i]))
 
     return f, SPL
 
 def plot():
     f, SPL = CalculateSPL()
     plt.plot(f, SPL)
-    plt.title("TBL")
+    plt.title("LBL")
     plt.xlabel("Frequency")
     plt.ylabel("SPL")
     plt.show()

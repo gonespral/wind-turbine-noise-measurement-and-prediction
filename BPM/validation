@@ -108,18 +108,39 @@ def TBL_TE(f):
 
 def CalculateSPL(): 
     f = np.arange(0,10000)
-    SPL = []
+    SPLTip = []
+    SPLBlunt = []
+    SPLLBL = []
+    SPLTBL = []
     for i in range(len(f)):
-        SPL.append(Blunt(f[i]))
+        SPLTip.append(TipVortex(f[i]))
+        SPLBlunt.append(Blunt(f[i]))
+        SPLLBL.append(LBL(f[i]))
+        #SPLTBL.append(TBL_TE(f[i]))
 
-    return f, SPL
+    return f, SPLTip, SPLBlunt, SPLLBL, SPLTBL
 
 def plot():
-    f, SPL = CalculateSPL()
-    plt.plot(f, SPL)
-    plt.title("TBL")
-    plt.xlabel("Frequency")
-    plt.ylabel("SPL")
+    f, SPLTip, SPLBlunt, SPLLBL, SPLTBL = CalculateSPL()
+    fig, axs = plt.subplots(2, 2)
+    axs[0, 0].plot(f, SPLTip)
+    axs[0, 0].set_title('Tip Vortex')
+    axs[0, 0].set_ylim((0, 100))
+    axs[0, 1].plot(f, SPLBlunt, 'tab:orange')
+    axs[0, 1].set_title('Bluntness')
+    axs[0, 1].set_ylim((0, 100))
+    axs[1, 0].plot(f, SPLLBL, 'tab:green')
+    axs[1, 0].set_title('LBL-VS')
+    axs[1, 0].set_ylim((0, 100))
+    # axs[1, 1].plot(f, f, 'tab:red')
+    # axs[1, 1].set_title('TBL-TE')
+    # axs[1, 1].set_ylim((0, 100))
+
+
+    for ax in axs.flat:
+        ax.set(xlabel='Frequency', ylabel='SPL')
+    # for ax in axs.flat:
+    #     ax.label_outer()
     plt.show()
 
 plot()
