@@ -2,10 +2,10 @@ import common
 import numpy as np
 from TE_Bluntness import *
 from TipVortex import *
-import TBL_TE_functions as TBL
+# import TBL_TE_functions as TBL
 from LBL_VS import *
 import matplotlib.pyplot as plt
-from TBL_TE_Real import *
+import TBL_TE_Real as TBL
 
 """
 Experimental Variables
@@ -58,7 +58,6 @@ Reynolds = rho * U * c / visc
 # Reynolds number based on pressure side boundary layer thickness displacement
 R_deltaPstar = delta_p*U/visc
 
-print(M)
 """
 
 Initializing frequency bands
@@ -106,21 +105,24 @@ def TBL_TE(f):
     St_1 = TBL.St_11(M)
     St_2 = TBL.St_21(St_1, alpha_star)
     St_1mean = TBL.St_1mean1(St_1, St_2)
+    St_peak = St_peak1(St_1, St_2, St_1mean)
     b0 = TBL.b01(Reynolds)
-    b = TBL.b1(St_s, St_2)
-    B_min = TBL.B_min1(b)
-    B_max = TBL.B_max1(b)
+    b = TBL.b1(St_p, St_2)
+    B_min = TBL.B_min1(b0)
+    B_max = TBL.B_max1(b0)
     B_R = TBL.B_R1(B_min, B_max)
     B = TBL.B1(B_min, B_R, B_max)
     a0 = TBL.a01(Reynolds) # I started from here 
-    a = TBL.a1(St, St_peak) 
+    a = TBL.a1(St_s, St_peak) 
     A_min = TBL.A_min1(a)
     A_max = TBL.A_max1(a)
     A_R = TBL.A_R1(A_min, A_max)
     A = TBL.A1(A_min, A_R, A_max) 
+    SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, St_s, St_2, K2)
     SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
-    SPL_TBLTE = TBL.TBLTE1(SPL_s, SPL_p)
+    return TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
+    #TBL.SPL_TBLTE1(SPL_s, SPL_p)
     
 
 def CalculateSPL(): 
@@ -133,32 +135,47 @@ def CalculateSPL():
         SPLTip.append(TipVortex(f[i]))
         SPLBlunt.append(Blunt(f[i]))
         SPLLBL.append(LBL(f[i]))
-        #SPLTBL.append(TBL_TE(f[i]))
+        SPLTBL.append(TBL_TE(f[i]))
 
     return f, SPLTip, SPLBlunt, SPLLBL, SPLTBL
 
-def plot():
-    f, SPLTip, SPLBlunt, SPLLBL, SPLTBL = CalculateSPL()
-    fig, axs = plt.subplots(2, 2)
-    axs[0, 0].plot(f, SPLTip)
-    axs[0, 0].set_title('Tip Vortex')
-    axs[0, 0].set_ylim((0, 100))
-    axs[0, 1].plot(f, SPLBlunt, 'tab:orange')
-    axs[0, 1].set_title('Bluntness')
-    axs[0, 1].set_ylim((0, 100))
-    axs[1, 0].plot(f, SPLLBL, 'tab:green')
-    axs[1, 0].set_title('LBL-VS')
-    axs[1, 0].set_ylim((0, 100))
-    # axs[1, 1].plot(f, f, 'tab:red')
-    # axs[1, 1].set_title('TBL-TE')
-    # axs[1, 1].set_ylim((0, 100))
+# def plot():
+#     f, SPLTip, SPLBlunt, SPLLBL, SPLTBL = CalculateSPL()
+#     print(SPLTBL)
+#     fig, axs = plt.subplots(2, 2)
+#     axs[0, 0].plot(f, SPLTip)
+#     axs[0, 0].set_title('Tip Vortex')
+#     axs[0, 0].set_ylim((0, 100))
+#     axs[0, 1].plot(f, SPLBlunt, 'tab:orange')
+#     axs[0, 1].set_title('Bluntness')
+#     axs[0, 1].set_ylim((0, 100))
+#     axs[1, 0].plot(f, SPLLBL, 'tab:green')
+#     axs[1, 0].set_title('LBL-VS')
+#     axs[1, 0].set_ylim((0, 100))
+#     axs[1, 1].plot(f, f, 'tab:red')
+#     axs[1, 1].set_title('TBL-TE')
+#     axs[1, 1].set_ylim((0, 100))
 
-    print(SPLLBL)
-    for ax in axs.flat:
-        ax.set(xlabel='Frequency', ylabel='SPL')
-    # for ax in axs.flat:
-    #     ax.label_outer()
+#     #print(SPLLBL)
+    
+#     for ax in axs.flat:
+#         ax.set(xlabel='Frequency', ylabel='SPL')
+#     # for ax in axs.flat:
+#     #     ax.label_outer()
+#     plt.show()
+
+# plot()
+
+
+def plotnew():
+    f, SPLTip, SPLBlunt, SPLLBL, SPLTBL = CalculateSPL()
+
+    plt.plot(f, SPLTBL)
+    plt.ylim((0,100))
+    plt.xlabel("Frequency")
+    plt.ylabel("SPL")
+    plt.title("TBL-TE")
     plt.show()
 
-plot()
 
+plotnew()

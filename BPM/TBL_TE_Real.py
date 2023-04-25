@@ -178,9 +178,9 @@ def A1(A_min, A_R, A_max):
 
 
 
-#def SPL_alpha1(delta_s, M, L, Dh, re, B, St_s, St_2, K2):
-#    SPL_alpha = 10 * log10( (delta_s * M**5 * L * Dh) / re**2) + B * (St_s / St_2) + K2 
-#    return SPL_alpha
+def SPL_alpha1(delta_s, M, L, Dh, re, B, St_s, St_2, K2):
+   SPL_alpha = 10 * np.log10( (delta_s * M**5 * L * Dh) / re**2) + B * (St_s / St_2) + K2 
+   return SPL_alpha
 
 def SPL_s1(delta_s, M, L, Dh, re, A, St_s, St_1, K1):
     SPL_s = 10 * np.log10( (delta_s * M**5 * L * Dh) / re**2) + A * (St_s / St_1) + (K1 - 3)
@@ -190,9 +190,9 @@ def SPL_p1(delta_p, M, L, Dh, re, A, St_p, St_1, K1, deltaK1):
     SPL_p = 10 * np.log10( (delta_p * M**5 * L * Dh) / re**2) + A * (St_p / St_1) + (K1 - 3) + deltaK1
     return SPL_p
 
-#def SPL_tot1(SPL_alpha, SPL_s, SPL_p):
-#    SPL_tot = 10 * log10( 10**(SPL_alpha/10) + 10**(SPL_s/10) + 10**(SPL_p/10))
-#    return SPL_tot
+def SPL_tot1(SPL_alpha, SPL_s, SPL_p):
+   SPL_tot = 10 * np.log10( 10**(SPL_alpha/10) + 10**(SPL_s/10) + 10**(SPL_p/10))
+   return SPL_tot
 
 def SPL_TBLTE1(SPL_s, SPL_p):
     SPL_TBLTE = 10 * np.log10(10**(SPL_s/10) + 10**(SPL_p/10))
