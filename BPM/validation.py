@@ -26,9 +26,9 @@ r_e = 1
 #Boundary layer thickness              
 delta = 0.1
 #displacement thickness
-delta_p = 0.01
+delta_p = 0.001
 #displacement thickness of suction side of airfoil
-delta_s = 0.02
+#delta_s = 0.01
 #Angle from source streamwise axis                           
 Theta_e = np.pi / 2  
 #Angle from source source lateral y axis                       
@@ -42,7 +42,7 @@ c = 1
 #angle of attack of tip                          
 alpha_tip = 18 
  #max flow vel                      
-U_max = 8 
+U_max = 100
 #speed of sound  
 c_0 = 340.46
 #Free stream velocity    
@@ -56,7 +56,7 @@ Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)
 #Reynolds number based on chord length                       
 Reynolds = rho * U * c / visc
 # Reynolds number based on pressure side boundary layer thickness displacement
-R_deltaPstar = delta_p*U/visc
+R_deltaPstar = delta_p * U / visc
 
 """
 
@@ -113,7 +113,7 @@ def TBL_TE(f):
     B_R = TBL.B_R1(B_min, B_max)
     B = TBL.B1(B_min, B_R, B_max)
     a0 = TBL.a01(Reynolds) # I started from here 
-    a = TBL.a1(St_s, St_peak) 
+    a = TBL.a1(St_p, St_peak) 
     A_min = TBL.A_min1(a)
     A_max = TBL.A_max1(a)
     A_R = TBL.A_R1(A_min, A_max)
@@ -169,7 +169,7 @@ def CalculateSPL():
 
 def plotnew():
     f, SPLTip, SPLBlunt, SPLLBL, SPLTBL = CalculateSPL()
-
+    print(SPLTBL)
     plt.plot(f, SPLTBL)
     plt.ylim((0,100))
     plt.xlabel("Frequency")
