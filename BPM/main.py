@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 """
 Experimental Variables
-
+.
 """
 #angle between sloping surfaces unstream
 psi = 14
