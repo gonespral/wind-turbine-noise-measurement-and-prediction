@@ -129,13 +129,13 @@ def plot_fft(indices: list = [0, 1, 2, 3, 4], modes: list = ["denoised"]) -> Non
         for i in indices:
             df_wt_bg_fft_ = pickle_files[i]["df_wt_bg_fft"]
             ax[j].plot(df_wt_bg_fft_["freq"],
-                       df_wt_bg_fft_["value"],
+                       df_wt_bg_fft_["fft"],
                        label=f"{pickle_files[i]['v_inf']}m/s")
         ax[j].set_xscale(x_scale)
         ax[j].set_yscale(y_scale)
         ax[j].set_xlim(x_lim_0, x_lim_1)
         ax[j].set_xlabel("Frequency (Hz)")
-        ax[j].set_ylabel("Value")
+        ax[j].set_ylabel("FFT")
         ax[j].set_title("Wind Turbine - Background (de-noised) FFT")
         ax[j].legend()
 
