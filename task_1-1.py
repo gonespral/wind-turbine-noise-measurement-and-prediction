@@ -48,29 +48,67 @@ df_bg_fft = df_bg_fft[df_bg_fft['freq'] >= 0]
 df_wt_fft = df_wt_fft[df_wt_fft['freq'] >= 0]
 
 # Double the values
-df_bg_fft = df_bg_fft * 2
-df_wt_fft = df_wt_fft * 2
+#df_bg_fft = df_bg_fft * 2
+#df_wt_fft = df_wt_fft * 2
 
 # Print results
-print("[*] Printing results for FFT...")
-print(df_bg_fft)
-print(df_wt_fft)
+#print("[*] Printing results for FFT...")
+#print(df_bg_fft)
+#print(df_wt_fft)
 
 # Plot results
 print("[*] Plotting results...")
 sns.lineplot(data=df_bg_fft, x='freq', y=0, label='Background')
+plt.xscale('log')
+plt.grid(True)
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('Pressure (Pa)')
 plt.show()
 
 sns.lineplot(data=df_wt_fft, x='freq', y=0, label='Wind turbine')
+plt.xscale('log')
+plt.grid(True)
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('Pressure (Pa)')
 plt.show()
 
 # ---------------------------------- PSD ----------------------------------
 
-# Evaluate PSD using Welch's method
+# Evaluate PSD in the frequency domain
 print("[*] Calculating PSD...")
+df_bg_psd = df_bg_fft.applymap(lambda x: x ** 2 / sample_rate)
+df_wt_psd = df_wt_fft.applymap(lambda x: x ** 2 / sample_rate)
 
-# PSD is given by the square of the modulus of the FFT divided by the sampling frequency
+# Convert to dB
+print("[*] Converting to dB...")
+df_bg_psd = df_bg_psd.applymap(lambda x: 10 * np.log10(x / p_ref ** 2))
+df_wt_psd = df_wt_psd.applymap(lambda x: 10 * np.log10(x / p_ref ** 2))
+
+# Print results
+#print("[*] Printing results for PSD...")
+#print(df_bg_psd)
+#print(df_wt_psd)
+
+# Average PSD over chunks
+
+# Plot results
+print("[*] Plotting results...")
+sns.lineplot(data=df_bg_psd, x='freq', y=0, label='Background')
+plt.xscale('log')
+plt.grid(True)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Pressure (dB/Hz)')
+plt.show()
+
+sns.lineplot(data=df_wt_psd, x='freq', y=0, label='Wind turbine')
+plt.xscale('log')
+plt.grid(True)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Pressure (dB/Hz)')
+plt.show()
+
+
+
+
+
+
