@@ -277,7 +277,7 @@ def plot_waterfall(index: int = 0, modes: list = ["denoised"]) -> None:
 
 
 if __name__ == "__main__":
-    with open("misc/windmill.txt", "r") as f:
+    with open("windmill.txt", "r") as f:
         print(f.read())
     print("--- WIND TURBINE NOISE ANALYSIS TOOL ---\n Type 'info()' for a list of commands.")
 

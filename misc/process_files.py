@@ -5,12 +5,12 @@ import os
 import pickle
 
 # Check if processed data directory exists, if not create it
-if not os.path.exists("data/processed"):
-    os.makedirs("data/processed")
+if not os.path.exists("../data/processed"):
+    os.makedirs("../data/processed")
 
 # Clear processed data directory
-for file in os.listdir("data/processed"):
-    os.remove(os.path.join("data/processed", file))
+for file in os.listdir("../data/processed"):
+    os.remove(os.path.join("../data/processed", file))
 
 # Sample rate of the data
 sample_rate = 48128
