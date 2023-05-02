@@ -41,12 +41,12 @@ T = 288.15
 c = 1   
 #angle of attack of tip                          
 alpha_tip = 18 
- #max flow vel                      
-U_max = 100
+#max flow vel                      
+U_max = 10
 #speed of sound  
 c_0 = 340.46
 #Free stream velocity    
-U = 100  
+U = 8 * 1.94384
 #flow mach number                        
 M = U / c_0    
 #convection mach number                                 
@@ -211,7 +211,7 @@ def plotone():
     plt.plot(f, SPLTBL_alpha, 'tab:green')
     plt.plot(f, SPLTBL_tot, 'tab:red')
     plt.legend(["Pressure Side", "Suction Side", "Alpha", "Total SPL"])
-    plt.ylim((0, 100))
+    plt.ylim((0, 50))
     plt.xscale('log')
     plt.title("SPL vs Frequency")
     plt.show()
