@@ -1,21 +1,16 @@
 import mat73
 import pandas as pd
 import numpy as np
-import tqdm
-import os
+import scipy
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pickle
 
 # --- Configuration Parameters ---
 sample_rate = 48128
-chunk_size = 1000
+p_ref = 2e-5
+num_chunks = 10
 bg_data_path = "data/downloads/U08_Background.mat"
 wt_data_path = "data/downloads/U08_Wind%20turbine.mat"
-
-with open("misc/windmill.txt", "r") as f:
-    print(f.read())
-print("--- WIND TURBINE NOISE ANALYSIS TOOL ---\n")
 
 # Extract data from mat file
 print(f"[*] Processing files: {bg_data_path} and {wt_data_path}")
@@ -26,43 +21,113 @@ df_wt = pd.DataFrame(mat73.loadmat(wt_data_path)['Sig_Mic_rotating'])
 df_bg.columns = df_bg.columns / sample_rate
 df_wt.columns = df_wt.columns / sample_rate
 
-# Split data into chunks. Splitting is done with chunk_size columns. Each new dataframe is added to an array bg_chunks.
-print(f"[*] Splitting data into chunks of size {chunk_size}")
-bg_chunks = []
-wt_chunks = []
-for i in range(0, len(df_bg.columns), chunk_size):
-    bg_chunks.append(df_bg.iloc[:, i:i + chunk_size])
-    wt_chunks.append(df_wt.iloc[:, i:i + chunk_size])
-print(f"[*] {len(bg_chunks)} chunks created")
-print(f"[*] Frequency resolution: {sample_rate / chunk_size} Hz")
+# Keep only row 1 - microphone 1
+df_bg = df_bg.iloc[1]
+df_wt = df_wt.iloc[1]
 
-# Each chunk has columns indicating sample number, and rows indicating microphone number.
-# Do FFT for each microphone and print the results.
-print("[*] Performing FFT on each chunk")
-bg_chunks_fft = []
-wt_chunks_fft = []
-for bg_chunk, wt_chunk in tqdm.tqdm(zip(bg_chunks, wt_chunks),
-                                    total=len(bg_chunks),
-                                    unit="chunk pair"):
-    for chunk in [bg_chunk, wt_chunk]:
-        # Create a new dataframe to store the FFT results for this chunk
-        chunk_fft = pd.DataFrame()  # index is mic, columns are freq, values are FFT magnitude
-        for i, row in chunk.iterrows():  # "i" is mic number, row is the data for that mic
-            fft = np.abs(np.fft.fft(row))  # taking absolute value to get magnitude
-            freq = np.fft.fftfreq(len(row), 1 / sample_rate)  # get frequency for each FFT bin
-            fft = 2 * np.abs(fft[:len(fft) // 2])  # only take first half of FFT bins
-            freq = freq[:len(freq) // 2]  # only take first half of frequencies
-            # Add row to chunk_fft dataframe
-            chunk_fft = chunk_fft.append(pd.Series(fft, index=freq, name=i))
-        # Add chunk_fft to bg_chunks_fft or wt_chunks_fft
-        if chunk is bg_chunk:
-            bg_chunks_fft.append(chunk_fft)
-        else:
-            wt_chunks_fft.append(chunk_fft)
+# Split data into chunks
+print("[*] Splitting data into chunks...")
+chunk_size = int(len(df_bg) / num_chunks) # samples
+print("Chunk size:", chunk_size)
+df_bg_chunks = np.array_split(df_bg, num_chunks)
+df_wt_chunks = np.array_split(df_wt, num_chunks)
 
-    break
+print(df_bg_chunks)
 
-# Plot chunk 1 : x freq, y value, hue mic
-print("[*] Plotting chunk 1")
-sns.lineplot(data=bg_chunks_fft[0].T, x=bg_chunks_fft[0].T.index, y=0, hue=bg_chunks_fft[0].T.columns)
+# ---------------------------------- FFT ----------------------------------
+
+# FFT for each microphone
+df_bg_fft_chunks = []
+df_wt_fft_chunks = []
+print("[*] Calculating FFT...")
+for chunk in df_bg_chunks:
+    df_bg_fft_chunks.append(pd.DataFrame(np.fft.fft(chunk)))
+for chunk in df_wt_chunks:
+    df_wt_fft_chunks.append(pd.DataFrame(np.fft.fft(chunk)))
+print("Length of df_bg_fft_chunks:", len(df_bg_fft_chunks))
+print("Length of df_wt_fft_chunks:", len(df_wt_fft_chunks))
+
+# Get modulus of complex numbers
+print("[*] Getting modulus of complex numbers...")
+for chunk in df_bg_fft_chunks:
+    chunk = chunk.applymap(lambda x: np.abs(x))
+for chunk in df_wt_fft_chunks:
+    chunk = chunk.applymap(lambda x: np.abs(x))
+
+# Get frequency
+print("[*] Getting frequency...")
+for chunk in df_bg_fft_chunks:
+    chunk['freq'] = np.fft.fftfreq(len(chunk), 1 / sample_rate)
+for chunk in df_wt_fft_chunks:
+    chunk['freq'] = np.fft.fftfreq(len(chunk), 1 / sample_rate)
+
+# Keep only positive frequencies
+print("[*] Keeping only positive frequencies...")
+for chunk in df_bg_fft_chunks:
+    chunk = chunk[chunk['freq'] >= 0]
+for chunk in df_wt_fft_chunks:
+    chunk = chunk[chunk['freq'] >= 0]
+
+# Print results
+#print("[*] Printing results for FFT...")
+#print(df_bg_fft)
+#print(df_wt_fft)
+
+# Plot results
+print("[*] Plotting results...")
+sns.lineplot(data=df_bg_fft_chunks[0], x='freq', y=0, label='Background')
+plt.xscale('log')
+plt.grid(True)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Pressure (Pa)')
+plt.show()
+
+sns.lineplot(data=df_wt_fft_chunks[0], x='freq', y=0, label='Wind turbine')
+plt.xscale('log')
+plt.grid(True)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Pressure (Pa)')
+plt.show()
+
+
+# ---------------------------------- PSD ----------------------------------
+
+# Evaluate PSD in the frequency domain
+print("[*] Calculating PSD...")
+df_bg_psd = df_bg_fft.applymap(lambda x: x ** 2 / sample_rate)
+df_wt_psd = df_wt_fft.applymap(lambda x: x ** 2 / sample_rate)
+
+# Convert to dB
+print("[*] Converting to dB...")
+df_bg_psd = df_bg_psd.applymap(lambda x: 10 * np.log10(x / p_ref ** 2))
+df_wt_psd = df_wt_psd.applymap(lambda x: 10 * np.log10(x / p_ref ** 2))
+
+# Print results
+#print("[*] Printing results for PSD...")
+#print(df_bg_psd)
+#print(df_wt_psd)
+
+# Average PSD over chunks, for each microphone
+print("[*] Averaging PSD over chunks...")
+
+# Plot results
+print("[*] Plotting results...")
+sns.lineplot(data=df_bg_psd, x='freq', y=0, label='Background')
+plt.xscale('log')
+plt.grid(True)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Pressure (dB/Hz)')
+plt.show()
+
+sns.lineplot(data=df_wt_psd, x='freq', y=0, label='Wind turbine')
+plt.xscale('log')
+plt.grid(True)
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Pressure (dB/Hz)')
+plt.show()
+
+
+
+
+
 
