@@ -1,133 +1,127 @@
 import mat73
 import pandas as pd
 import numpy as np
-import scipy
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# --- Configuration Parameters ---
-sample_rate = 48128
-p_ref = 2e-5
-num_chunks = 10
-bg_data_path = "data/downloads/U08_Background.mat"
-wt_data_path = "data/downloads/U08_Wind%20turbine.mat"
+test_mode = False # Choose whether to run with test function (task 1) or with wind tunnel data
 
-# Extract data from mat file
-print(f"[*] Processing files: {bg_data_path} and {wt_data_path}")
-df_bg = pd.DataFrame(mat73.loadmat(bg_data_path)['Sig_Mic_bg'])
-df_wt = pd.DataFrame(mat73.loadmat(wt_data_path)['Sig_Mic_rotating'])
+# ------------------------- Prepare data --------------------------------
 
-# Swap sample number for seconds
-df_bg.columns = df_bg.columns / sample_rate
-df_wt.columns = df_wt.columns / sample_rate
+if not test_mode:
+    # Configuration parameters
+    p_ref = 2E-5  # Reference pressure (Pa)
+    sample_rate = 48128  # Hz
+    bg_data_path = "data/downloads/U08_Background.mat"
+    wt_data_path = "data/downloads/U08_Wind%20turbine.mat"
 
-# Keep only row 1 - microphone 1
-df_bg = df_bg.iloc[1]
-df_wt = df_wt.iloc[1]
+    # Extract data from mat file
+    print(f"[*] Processing files:\n    {bg_data_path}\n    {wt_data_path}")
+    df_bg = pd.DataFrame(mat73.loadmat(bg_data_path)['Sig_Mic_bg'])
+    df_wt = pd.DataFrame(mat73.loadmat(wt_data_path)['Sig_Mic_rotating'])
 
-# Split data into chunks
-print("[*] Splitting data into chunks...")
-chunk_size = int(len(df_bg) / num_chunks) # samples
-print("Chunk size:", chunk_size)
-df_bg_chunks = np.array_split(df_bg, num_chunks)
-df_wt_chunks = np.array_split(df_wt, num_chunks)
+    # Swap sample number for seconds
+    df_bg.columns = df_bg.columns / sample_rate
+    df_wt.columns = df_wt.columns / sample_rate
 
-print(df_bg_chunks)
+    # Keep only row 1 - microphone 1
+    df_bg = df_bg.iloc[1]
+    df_wt = df_wt.iloc[1]
+
+    # Apply hanning window
+    df_bg = df_bg * np.hanning(len(df_bg))
+    df_wt = df_wt * np.hanning(len(df_wt))
+
+else:
+    # Configuration parameters
+    p_ref = 2E-5  # Reference pressure (Pa)
+    sample_rate = 51200 # Hz
+    t_max = 20 # seconds
+    A_1 = 0.02 * np.sqrt(2)
+    A_2 = 0.002 * np.sqrt(2)
+    f_1 = 500 # Hz
+    f_2 = 2000 # Hz
+
+    # Generate dataframe with test data sigal
+    print("[*] Running with test function...")
+    def f(t):
+        A = A_1 * np.sin((2 * np.pi * f_1 * t) + (np.pi / 4))
+        B = A_2 * np.cos((2 * np.pi * f_2 * t) + (np.pi / 6))
+        return A + B
+
+    # Generate values
+    x = np.arange(0, t_max, 1 / sample_rate)
+    y = f(x)
+
+    # Apply hanning window
+    y = y * np.hanning(len(y))
+
+    # Assemble pandas series with index number time and values pressure
+    df_bg = pd.Series(y, index=x)
+    df_wt = pd.Series(y, index=x)
+
 
 # ---------------------------------- FFT ----------------------------------
 
-# FFT for each microphone
-df_bg_fft_chunks = []
-df_wt_fft_chunks = []
 print("[*] Calculating FFT...")
-for chunk in df_bg_chunks:
-    df_bg_fft_chunks.append(pd.DataFrame(np.fft.fft(chunk)))
-for chunk in df_wt_chunks:
-    df_wt_fft_chunks.append(pd.DataFrame(np.fft.fft(chunk)))
-print("Length of df_bg_fft_chunks:", len(df_bg_fft_chunks))
-print("Length of df_wt_fft_chunks:", len(df_wt_fft_chunks))
 
-# Get modulus of complex numbers
-print("[*] Getting modulus of complex numbers...")
-for chunk in df_bg_fft_chunks:
-    chunk = chunk.applymap(lambda x: np.abs(x))
-for chunk in df_wt_fft_chunks:
-    chunk = chunk.applymap(lambda x: np.abs(x))
+# Calculate frequency components
+df_bg_fft = pd.DataFrame(np.fft.fft(df_bg))
+df_wt_fft = pd.DataFrame(np.fft.fft(df_wt))
 
-# Get frequency
-print("[*] Getting frequency...")
-for chunk in df_bg_fft_chunks:
-    chunk['freq'] = np.fft.fftfreq(len(chunk), 1 / sample_rate)
-for chunk in df_wt_fft_chunks:
-    chunk['freq'] = np.fft.fftfreq(len(chunk), 1 / sample_rate)
+# Get absolute value of components and normalize (divide by number of samples) to get an estimation of pressure level
+df_bg_fft = df_bg_fft.applymap(lambda x: np.abs(x)/len(df_bg_fft))
+df_wt_fft = df_wt_fft.applymap(lambda x: np.abs(x)/len(df_wt_fft))
+
+# Get frequency axis
+df_bg_fft['freq'] = np.fft.fftfreq(n=len(df_bg_fft), d=1/sample_rate)
+df_wt_fft['freq'] = np.fft.fftfreq(n=len(df_wt_fft), d=1/sample_rate)
+
+print(f"[*] Frequency resolution: {df_bg_fft['freq'][1]} Hz")
 
 # Keep only positive frequencies
-print("[*] Keeping only positive frequencies...")
-for chunk in df_bg_fft_chunks:
-    chunk = chunk[chunk['freq'] >= 0]
-for chunk in df_wt_fft_chunks:
-    chunk = chunk[chunk['freq'] >= 0]
+df_bg_fft = df_bg_fft[df_bg_fft['freq'] >= 0]
+df_wt_fft = df_wt_fft[df_wt_fft['freq'] >= 0]
 
-# Print results
-#print("[*] Printing results for FFT...")
-#print(df_bg_fft)
-#print(df_wt_fft)
+# Double the values
+#df_bg_fft = df_bg_fft * 2
+#df_wt_fft = df_wt_fft * 2
 
 # Plot results
 print("[*] Plotting results...")
-sns.lineplot(data=df_bg_fft_chunks[0], x='freq', y=0, label='Background')
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+sns.lineplot(data=df_bg_fft, x='freq', y=0, label='Background', ax=ax1)
+sns.lineplot(data=df_wt_fft, x='freq', y=0, label='Wind turbine', ax=ax2)
+ax1.set_title("FFT")
+ax1.grid(True)
+ax1.set_ylabel('Pressure [Pa]')
+ax2.grid(True)
+ax2.set_ylabel('Pressure [Pa]')
+ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
-plt.grid(True)
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Pressure (Pa)')
 plt.show()
-
-sns.lineplot(data=df_wt_fft_chunks[0], x='freq', y=0, label='Wind turbine')
-plt.xscale('log')
-plt.grid(True)
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Pressure (Pa)')
-plt.show()
-
 
 # ---------------------------------- PSD ----------------------------------
 
 # Evaluate PSD in the frequency domain
 print("[*] Calculating PSD...")
-df_bg_psd = df_bg_fft.applymap(lambda x: x ** 2 / sample_rate)
-df_wt_psd = df_wt_fft.applymap(lambda x: x ** 2 / sample_rate)
+df_bg_psd = df_bg_fft.applymap(lambda x: x ** 2)
+df_wt_psd = df_wt_fft.applymap(lambda x: x ** 2)
 
 # Convert to dB
-print("[*] Converting to dB...")
 df_bg_psd = df_bg_psd.applymap(lambda x: 10 * np.log10(x / p_ref ** 2))
 df_wt_psd = df_wt_psd.applymap(lambda x: 10 * np.log10(x / p_ref ** 2))
 
-# Print results
-#print("[*] Printing results for PSD...")
-#print(df_bg_psd)
-#print(df_wt_psd)
-
-# Average PSD over chunks, for each microphone
-print("[*] Averaging PSD over chunks...")
-
 # Plot results
 print("[*] Plotting results...")
-sns.lineplot(data=df_bg_psd, x='freq', y=0, label='Background')
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+sns.lineplot(data=df_bg_psd, x='freq', y=0, label='Background', ax=ax1)
+sns.lineplot(data=df_wt_psd, x='freq', y=0, label='Wind turbine', ax=ax2)
+ax1.set_title("PSD")
+ax1.grid(True)
+ax1.set_ylabel('PSD [dB/Hz]')
+ax2.grid(True)
+ax2.set_ylabel('PSD [dB/Hz]')
+ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
-plt.grid(True)
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Pressure (dB/Hz)')
 plt.show()
-
-sns.lineplot(data=df_wt_psd, x='freq', y=0, label='Wind turbine')
-plt.xscale('log')
-plt.grid(True)
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Pressure (dB/Hz)')
-plt.show()
-
-
-
-
-
-

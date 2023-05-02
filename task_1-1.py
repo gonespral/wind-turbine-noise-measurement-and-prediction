@@ -98,7 +98,7 @@ ax1.set_ylabel('Pressure [Pa]')
 ax2.grid(True)
 ax2.set_ylabel('Pressure [Pa]')
 ax2.set_xlabel('Frequency [Hz]')
-plt.xscale('log')
+plt.xscale('linear')
 plt.show()
 
 # ---------------------------------- PSD ----------------------------------
@@ -107,6 +107,20 @@ plt.show()
 print("[*] Calculating PSD...")
 df_bg_psd = df_bg_fft.applymap(lambda x: x ** 2)
 df_wt_psd = df_wt_fft.applymap(lambda x: x ** 2)
+
+# Plot results
+print("[*] Plotting results...")
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+sns.lineplot(data=df_bg_psd, x='freq', y=0, label='Background', ax=ax1)
+sns.lineplot(data=df_wt_psd, x='freq', y=0, label='Wind turbine', ax=ax2)
+ax1.set_title("PSD")
+ax1.grid(True)
+ax1.set_ylabel('PSD [Pa^2/Hz]')
+ax2.grid(True)
+ax2.set_ylabel('PSD [Pa^2/Hz]')
+ax2.set_xlabel('Frequency [Hz]')
+plt.xscale('log')
+plt.show()
 
 # Convert to dB
 df_bg_psd = df_bg_psd.applymap(lambda x: 10 * np.log10(x / p_ref ** 2))
@@ -125,3 +139,8 @@ ax2.set_ylabel('PSD [dB/Hz]')
 ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.show()
+
+# ---------------------------------- SPL ----------------------------------
+
+# Power level - PSD integrated over all frequencies
+
