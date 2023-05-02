@@ -197,7 +197,3 @@ def SPL_tot1(SPL_alpha, SPL_s, SPL_p):
 def SPL_TBLTE1(SPL_s, SPL_p):
     SPL_TBLTE = 10 * np.log10(10**(SPL_s/10) + 10**(SPL_p/10))
     return SPL_TBLTE
-
-
-
-
