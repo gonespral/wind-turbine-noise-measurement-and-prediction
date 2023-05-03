@@ -1,6 +1,7 @@
 import mat73
 import pandas as pd
 import numpy as np
+import scipy.signal as signal
 import seaborn as sns
 import matplotlib.pyplot as plt
 
@@ -125,14 +126,15 @@ plt.xscale('log')
 plt.show()
 
 # Convert to dB
-df_bg_psd = df_bg_psd.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
-df_wt_psd = df_wt_psd.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+print("[*] Converting to dB...")
+df_bg_psd_db = df_bg_psd.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+df_wt_psd_db = df_wt_psd.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
 
 # Plot results
 print("[*] Plotting results...")
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
-sns.lineplot(data=df_bg_psd, x='freq', y=0, label='Background', ax=ax1)
-sns.lineplot(data=df_wt_psd, x='freq', y=0, label='Wind turbine', ax=ax2)
+sns.lineplot(data=df_bg_psd_db, x='freq', y=0, label='Background', ax=ax1)
+sns.lineplot(data=df_wt_psd_db, x='freq', y=0, label='Wind turbine', ax=ax2)
 ax1.set_title(f"PSD (v_inf = {v_inf} m/s)")
 ax1.grid(True)
 ax1.set_ylabel('PSD [dB/Hz]')
@@ -144,5 +146,64 @@ plt.show()
 
 # ---------------------------------- SPL ----------------------------------
 
-# Power level - PSD integrated over all frequencies
+# Evaluate SPL in the frequency domain
+print("[*] Calculating SPL...")
+freq_centre = 10 ** (0.1 * np.arange(12, 43))
+freq_d = 10 ** 0.05
+freq_upper = freq_centre * freq_d
+freq_lower = freq_centre / freq_d
 
+print(freq_centre)
+
+df_bg_spl = pd.DataFrame()
+df_wt_spl = pd.DataFrame()
+for l, c, u in zip(freq_lower, freq_centre, freq_upper):
+    # Sum PSD in band and add to dataframe
+    df_bg_spl = df_bg_spl.append(df_bg_psd[(df_bg_psd['freq'] >= l) & (df_bg_psd['freq'] < u)].sum(), ignore_index=True)
+    df_wt_spl = df_wt_spl.append(df_wt_psd[(df_wt_psd['freq'] >= l) & (df_wt_psd['freq'] < u)].sum(), ignore_index=True)
+
+    df_bg_spl.loc[df_bg_spl.index[-1], 'freq'] = c
+    df_wt_spl.loc[df_wt_spl.index[-1], 'freq'] = c
+
+# Convert to dB
+df_bg_spl = df_bg_spl.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+df_wt_spl = df_wt_spl.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+
+# Print results
+print("[*] Background SPL:")
+print(df_bg_spl)
+print("[*] Wind turbine SPL:")
+print(df_wt_spl)
+
+# Plot results
+print("[*] Plotting results...")
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+sns.lineplot(data=df_bg_spl, x='freq', y=0, label='Background', ax=ax1)
+sns.lineplot(data=df_wt_spl, x='freq', y=0, label='Wind turbine', ax=ax2)
+ax1.set_title(f"SPL_1/3 (v_inf = {v_inf} m/s)")
+ax1.grid(True)
+ax1.set_ylabel('SPL [dB]')
+ax2.grid(True)
+ax2.set_ylabel('SPL [dB]')
+ax2.set_xlabel('Frequency [Hz]')
+plt.xscale('log')
+plt.show()
+
+# ---------------------------------- OSPL ----------------------------------
+
+# Evaluate OSPL (overall SPL) for entire frequency range
+print("[*] Calculating OSPL...")
+freq_lower = 1
+freq_upper = max(df_bg_psd['freq'])
+
+# Sum PSD in band and store as single value
+bg_ospl = df_bg_psd[(df_bg_psd['freq'] >= freq_lower) & (df_bg_psd['freq'] < freq_upper)].sum()[0]
+wt_ospl = df_wt_psd[(df_wt_psd['freq'] >= freq_lower) & (df_wt_psd['freq'] < freq_upper)].sum()[0]
+
+# Convert to dB
+bg_ospl = 10 * np.log10(bg_ospl / (p_ref ** 2))
+wt_ospl = 10 * np.log10(wt_ospl / (p_ref ** 2))
+
+# Print results
+print(f"[*] Background OSPL:\n    {bg_ospl} dB")
+print(f"[*] Wind turbine OSPL:\n    {wt_ospl} dB")
