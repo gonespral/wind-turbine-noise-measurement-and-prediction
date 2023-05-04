@@ -13,6 +13,12 @@ c_0 = np.sqrt(1.4 * 287 * 288.15)
 rho = 1.225
 c = 1
 
+"""
+These arrays contain the inputs per section we found
+these using XFOIL for each section and calculated the velocity
+using the angular velocity of the turbine
+"""
+
 U = np.array([5.6, 11.2, 16.8, 22.4, 28, 33.6, 39.2, 44.8, 50.4, 56])
 delta_p = 0.1 * np.array([0.224, 0.194, 0.133, 0.0908, 0.11, 0.156, 0.134, 0.15, 0.18, 0.0295])
 delta_s = 0.1 * np.array([0.133, 0.383, 0.13, 0.106, 0.134, 0.1, 0.118, 0.131, 0.1105, 0.28])
@@ -23,15 +29,20 @@ delta_s = 0.1 * np.array([0.133, 0.383, 0.13, 0.106, 0.134, 0.1, 0.118, 0.131, 0
 
 M = U / c_0
 M_c = 0.8 * M                  
-alpha_star = 1.516
+#alpha_star = 1.516
+alpha_star = 0
 Reynolds = rho * U * c / visc
 L = 0.1
-r_e = 10
+r_e = 1.22
 Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)      
 R_deltaPstar = delta_p * U / visc
 
+"""
+Implementing the TBL-TE noise source, these are taken from the
+BPM paper we checked multiple times and are quite confident the 
+functions are correct
 
-# Implementing the TBL-TE noise source
+"""
 def TBL_TE(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar, Dh):
     gamma = TBL.gamma1(M)
     gamma0 = TBL.gamma01(M)
@@ -63,10 +74,20 @@ def TBL_TE(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar, Dh):
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
-    #TBL.SPL_TBLTE1(SPL_s, SPL_p)
+
+"""
+Calculated the SPL generating matricies of (10, 9999)
+
+Unfortunately it is messy since we had to adapt from
+calculating without secitoning the airfoil
+
+Simply put we loop through each section and each frequency and
+calculate the SPL using the BPM functions. This creates matrices where
+the rows correspond to 10 sections and the columns are frequencies
 
 
-# Calculated the SPL generating matricies of (10, 9999)
+"""
+
 def CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar, Dh): 
     SPLTBL_tot = np.zeros((10, len(f)))
     SPLTBL_alpha = np.zeros((10, len(f)))
@@ -80,6 +101,13 @@ def CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar, Dh):
             SPLTBL_tot[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k], Dh[k])[3]
 
     return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot
+
+"""
+The following function sums the contributions from
+each section to compile the final arrays for the SPL, it
+can then be plotted
+
+"""
 
 
 def AddSections(a, b, c, d, f):
@@ -95,6 +123,9 @@ def AddSections(a, b, c, d, f):
         SPL_tot[i] = 10 * np.log10(sum(10**(d[:,i]/10)))
     
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
+
+
+# This function simply plots the SPL vs frequency with log scale on x axis
     
 def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     dotf = []
