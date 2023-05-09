@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-test_mode = False # Choose whether to run with test function (task 1) or with wind tunnel data.
+test_mode = True # Choose whether to run with test function (task 1) or with wind tunnel data
 
 # ------------------------- Prepare data --------------------------------
 
@@ -85,9 +85,9 @@ print(f"[*] Frequency resolution: {df_bg_fft['freq'][1]} Hz")
 df_bg_fft = df_bg_fft[df_bg_fft['freq'] >= 0]
 df_wt_fft = df_wt_fft[df_wt_fft['freq'] >= 0]
 
-# Double the values
-df_bg_fft = df_bg_fft * 2
-df_wt_fft = df_wt_fft * 2
+# Double the amplitudes
+df_bg_fft[0] = df_bg_fft[0] * 2
+df_wt_fft[0] = df_wt_fft[0] * 2
 
 # Plot results
 print("[*] Plotting results...")
@@ -100,7 +100,7 @@ ax1.set_ylabel('Pressure [Pa]')
 ax2.grid(True)
 ax2.set_ylabel('Pressure [Pa]')
 ax2.set_xlabel('Frequency [Hz]')
-plt.xscale('log')
+plt.xscale('linear')
 plt.show()
 
 # ---------------------------------- PSD ----------------------------------
