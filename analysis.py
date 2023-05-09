@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-test_mode = False # Choose whether to run with test function (task 1) or with wind tunnel data
+test_mode = False # Choose whether to run with test function (task 1) or with wind tunnel data.
 
 # ------------------------- Prepare data --------------------------------
 
