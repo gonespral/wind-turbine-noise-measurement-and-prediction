@@ -4,8 +4,7 @@ import os
 import tqdm
 import requests
 
-urls = ["https://surfdrive.surf.nl/files/index.php/s/G9Xkz0wtZyhG6XZ/download?path=%2F&files=DU96-W-180.cor",
-        "https://surfdrive.surf.nl/files/index.php/s/G9Xkz0wtZyhG6XZ/download?path=%2F&files=U08_Background.mat",
+urls = ["https://surfdrive.surf.nl/files/index.php/s/G9Xkz0wtZyhG6XZ/download?path=%2F&files=U08_Background.mat",
         "https://surfdrive.surf.nl/files/index.php/s/G9Xkz0wtZyhG6XZ/download?path=%2F&files=U08_Wind%20turbine.mat",
         "https://surfdrive.surf.nl/files/index.php/s/G9Xkz0wtZyhG6XZ/download?path=%2F&files=U09_Background.mat",
         "https://surfdrive.surf.nl/files/index.php/s/G9Xkz0wtZyhG6XZ/download?path=%2F&files=U09_Wind%20turbine.mat",

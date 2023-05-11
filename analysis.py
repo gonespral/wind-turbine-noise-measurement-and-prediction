@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-test_mode = True # Choose whether to run with test function (task 1) or with wind tunnel data
+test_mode = False # Choose whether to run with test function (task 1) or with wind tunnel data
 
 # ------------------------- Prepare data --------------------------------
 
@@ -12,8 +12,8 @@ if not test_mode:
     # Configuration parameters
     p_ref = 2E-5  # Reference pressure (Pa)
     sample_rate = 48128  # Hz
-    bg_data_path = "data/downloads/U12_Background.mat" # Background noise
-    wt_data_path = "data/downloads/U12_Wind%20turbine.mat" # Wind turbine noise
+    bg_data_path = "data/downloads/U08_Background.mat" # Background noise
+    wt_data_path = "data/downloads/U08_Wind%20turbine.mat" # Wind turbine noise
     v_inf = bg_data_path.split("_")[0].split("U")[1] # Wind speed (m/s)
 
     # Extract data from mat file
@@ -100,7 +100,7 @@ ax1.set_ylabel('Pressure [Pa]')
 ax2.grid(True)
 ax2.set_ylabel('Pressure [Pa]')
 ax2.set_xlabel('Frequency [Hz]')
-plt.xscale('linear')
+plt.xscale('log')
 plt.show()
 
 # ---------------------------------- PSD ----------------------------------
@@ -226,8 +226,8 @@ df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 
 df_wt_spl['spl'] = df_wt_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
 
 # Remove frequencies outside of range 0 - 500Hz
-df_bg_spl = df_bg_spl[(df_bg_spl['freq'] >= 2000) & (df_bg_spl['freq'] <= 7000)]
-df_wt_spl = df_wt_spl[(df_wt_spl['freq'] >= 2000) & (df_wt_spl['freq'] <= 7000)]
+df_bg_spl = df_bg_spl[(df_bg_spl['freq'] >= 800) & (df_bg_spl['freq'] <= 3000)]
+df_wt_spl = df_wt_spl[(df_wt_spl['freq'] >= 800) & (df_wt_spl['freq'] <= 3000)]
 
 # Plot results
 print("[*] Plotting results...")
