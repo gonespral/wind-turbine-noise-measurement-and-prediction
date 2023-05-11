@@ -19,10 +19,10 @@ these using XFOIL for each section and calculated the velocity
 using the angular velocity of the turbine
 """
 
-U = np.array([9.765, 13.764, 18.6, 23.78, 29.12, 34.54, 40, 45.51, 51.03, 56.57])
-delta_p = 0.1 * np.array([0.224, 0.194, 0.133, 0.0908, 0.11, 0.156, 0.134, 0.15, 0.18, 0.0295])
-delta_s = 0.1 * np.array([0.133, 0.383, 0.13, 0.106, 0.134, 0.1, 0.118, 0.131, 0.1105, 0.28])
-
+U = np.array([7.7333,12.405,17.626,23.026,28.503,34.021,39.561,45.116,50.681,56.253])
+delta_p = np.array([0.082,0.062,0.05,0.0450101,0.0425,0.04,0.0385,0.0372,0.036,0.035])
+delta_s = np.array([0.082,0.062,0.05,0.0450101,0.0425,0.04,0.0385,0.0372,0.036,0.035])
+print(U.shape,delta_p.shape,delta_s.shape)
 # U = 50 * np.ones(10)
 # delta_p = 0.1 * np.ones(10)
 # delta_s = 0.001 * np.ones(10)
@@ -77,8 +77,7 @@ def TBL_TE(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
     SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
-    if f % 500 == 0:
-        print(b0,b,St_s, St_2, B_R, B, B_max, B_min, f)
+
 
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
 
@@ -162,7 +161,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.title("SPL vs Frequency")
     plt.show()
 
-f = np.arange(2000,10000)
+f = np.arange(1,5000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar)
 SPL_s, SPL_p, SPL_alpha, SPL_tot = AddSections(SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot, f)
 plotone(f, SPL_s, SPL_p, SPL_alpha, SPL_tot)
