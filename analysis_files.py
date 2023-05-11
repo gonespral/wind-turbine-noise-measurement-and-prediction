@@ -17,8 +17,8 @@ for file in os.listdir("data/downloads"):
             wt_paths.append(f"data/downloads/{file}")
 
 # Uncomment the following lines to use only one background and one wind turbine file
-bg_paths = ["data/downloads/U08_Background.mat"]
-wt_paths = ["data/downloads/U08_Wind%20turbine.mat"]
+#bg_paths = ["data/downloads/U08_Background.mat"]
+#wt_paths = ["data/downloads/U08_Wind%20turbine.mat"]
 
 # ------------------------- Prepare data --------------------------------
 
@@ -151,7 +151,7 @@ ax1.set_ylabel('PSD [dB/Hz]')
 ax2.grid(True)
 ax2.set_ylabel('PSD [dB/Hz]')
 ax2.set_xlabel('Frequency [Hz]')
-plt.xscale('linear')
+plt.xscale('log')
 plt.show()
 
 # --------------------------- Welch PSD -----------------------------------
@@ -196,7 +196,7 @@ ax1.set_ylabel('PSD [dB/Hz]')
 ax2.grid(True)
 ax2.set_ylabel('PSD [dB/Hz]')
 ax2.set_xlabel('Frequency [Hz]')
-plt.xscale('linear')
+plt.xscale('log')
 plt.show()
 
 # ---------------------------------- SPL ----------------------------------
@@ -204,7 +204,7 @@ plt.show()
 df_bg_spl_list = []
 df_wt_spl_list = []
 
-freq_step = 50
+freq_step = 100
 freq_bands = np.arange(0, max(df_bg_fft["freq"]), freq_step)
 
 for df_bg_psd_db, df_wt_psd_db, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_list, v_inf_list):
@@ -244,9 +244,9 @@ for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_list, df_wt_spl_list, v_inf_lis
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
 ax1.set_title("SPL")
 ax1.grid(True)
-ax1.set_ylabel('Pressure [dB]')
+ax1.set_ylabel('L_p [dB]')
 ax2.grid(True)
-ax2.set_ylabel('Pressure [dB]')
+ax2.set_ylabel('L_p [dB]')
 ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.show()
@@ -275,8 +275,8 @@ for df_bg_psd, df_wt_psd, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_list, v_i
 
     for l, c, u in zip(freq_lower, freq_centre, freq_upper):
         # Sum PSD in band
-        sum_bg = df_bg_psd[(df_bg_psd['freq'] >= l) & (df_bg_psd['freq'] < u)].sum()
-        sum_wt = df_wt_psd[(df_wt_psd['freq'] >= l) & (df_wt_psd['freq'] < u)].sum()
+        sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= l) & (df_bg_welch_psd['freq'] < u)].sum()
+        sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= l) & (df_wt_welch_psd['freq'] < u)].sum()
 
         # Add row to dataframe
         df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0]}, ignore_index=True)
@@ -293,9 +293,6 @@ for df_bg_psd, df_wt_psd, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_list, v_i
     # Append to lists
     df_bg_spl_1_3_list.append(df_bg_spl)
     df_wt_spl_1_3_list.append(df_wt_spl)
-
-    for df in df_bg_spl_1_3_list:
-        print(df.head())
 
 # Plot results
 print("[*] Plotting results...")
@@ -323,9 +320,11 @@ OSPL_wt_list = []
 
 for df_bg_psd, df_wt_psd, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_list, v_inf_list):
     # Sum PSD in band
-    sum_bg = df_bg_psd[(df_bg_psd['freq'] >= freq_lower) & (df_bg_psd['freq'] <= freq_upper)].sum()
-    sum_wt = df_wt_psd[(df_wt_psd['freq'] >= freq_lower) & (df_wt_psd['freq'] <= freq_upper)].sum()
+    sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= freq_lower) & (df_bg_welch_psd['freq'] <= freq_upper)].sum()
+    sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= freq_lower) & (df_wt_welch_psd['freq'] <= freq_upper)].sum()
 
+    print(sum_bg)
+    print(sum_wt)
     # Calculate OSPL
     ospl_bg = 10 * np.log10(sum_bg[0] / (p_ref ** 2))
     ospl_wt = 10 * np.log10(sum_wt[0] / (p_ref ** 2))
@@ -339,13 +338,17 @@ for df_bg_psd, df_wt_psd, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_list, v_i
     OSPL_bg_list.append(ospl_bg)
     OSPL_wt_list.append(ospl_wt)
 
-# Plot OSPL vs v_inf
+# Plot OSPL vs v_inf as scattwe plot with line connecting points
 print("[*] Plotting results...")
-plt.plot(v_inf_list, OSPL_bg_list, label='Background')
-plt.plot(v_inf_list, OSPL_wt_list, label='Wind turbine')
-plt.title("OSPL")
-plt.grid(True)
-plt.ylabel('Pressure [dB]')
-plt.xlabel('Wind speed [m/s]')
-plt.legend()
+fig, ax = plt.subplots()
+sns.scatterplot(x=v_inf_list, y=OSPL_bg_list, label='Background', ax=ax)
+sns.scatterplot(x=v_inf_list, y=OSPL_wt_list, label='Wind turbine', ax=ax)
+sns.lineplot(x=v_inf_list, y=OSPL_bg_list, ax=ax)
+sns.lineplot(x=v_inf_list, y=OSPL_wt_list, ax=ax)
+
+ax.set_title("OSPL vs v_inf")
+ax.grid(True)
+ax.set_ylabel('OSPL [dB]')
+ax.set_xlabel('v_inf [m/s]')
 plt.show()
+
