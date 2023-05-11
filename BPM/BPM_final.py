@@ -20,8 +20,8 @@ using the angular velocity of the turbine
 """
 
 U = np.array([9.765, 13.764, 18.6, 23.78, 29.12, 34.54, 40, 45.51, 51.03, 56.57])
-delta_p = 0.1 * np.array([0.224, 0.194, 0.133, 0.0908, 0.11, 0.156, 0.134, 0.15, 0.18, 0.0295])
-delta_s = 0.1 * np.array([0.133, 0.383, 0.13, 0.106, 0.134, 0.1, 0.118, 0.131, 0.1105, 0.28])
+delta_p = np.array([0.108, 0.0843, 0.068, 0.062, 0.0585, 0.0561, 0.0545, 0.0532, 0.0516, 0.0508])
+delta_s = np.array([0.108, 0.0843, 0.068, 0.062, 0.0585, 0.0561, 0.0545, 0.0532, 0.0516, 0.0508])
 
 # U = 50 * np.ones(10)
 # delta_p = 0.1 * np.ones(10)
@@ -29,7 +29,7 @@ delta_s = 0.1 * np.array([0.133, 0.383, 0.13, 0.106, 0.134, 0.1, 0.118, 0.131, 0
 
 M = U / c_0
 M_c = 0.8 * M                  
-alpha_star = np.degrees(np.arctan(1/7))
+alpha_star = np.degrees(np.arctan(2/21))
 Reynolds = rho * U * c / visc
 L = 0.1
 r_e = 1.22
@@ -61,24 +61,24 @@ def TBL_TE(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
     b = TBL.b1(St_p, St_2)
     B_min = TBL.B_min1(b)
     B_max = TBL.B_max1(b)
-    B_min1 = TBL.B_min1(b0)
-    B_max1 = TBL.B_max1(b0)
-    B_R = TBL.B_R1(B_min1, B_max1)
+    B_min2 = TBL.B_min1(b0)
+    B_max2 = TBL.B_max1(b0)
+    B_R = TBL.B_R1(B_min2, B_max2)
     B = TBL.B1(B_min, B_R, B_max)
     a0 = TBL.a01(Reynolds) # I started from here 
     a = TBL.a1(St_s, St_peak) 
     A_min = TBL.A_min1(a)
     A_max = TBL.A_max1(a)
-    A_min1 = TBL.A_min1(a0)
-    A_max1 = TBL.A_max1(a0)
-    A_R = TBL.A_R1(A_min1, A_max1)
+    A_min2 = TBL.A_min1(a0)
+    A_max2 = TBL.A_max1(a0)
+    A_R = TBL.A_R1(A_min2, A_max2)
     A = TBL.A1(A_min, A_R, A_max) 
     SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, St_s, St_2, K2)
     SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
-    if f % 500 == 0:
-        print(b0,b,St_s, St_2, B_R, B, B_max, B_min, f)
+    # if f % 500 == 0:
+    #     print(b0,b,St_s, St_2, B_R, B, B_max, B_min, f)
 
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
 
@@ -106,8 +106,8 @@ def CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
             SPLTBL_p[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[1]
             SPLTBL_alpha[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[2]
             SPLTBL_tot[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[3]
-        print("Section", k)
-        print(Reynolds[k])
+        # print("Section", k)
+        # print(Reynolds[k])
     return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot
 
 """
