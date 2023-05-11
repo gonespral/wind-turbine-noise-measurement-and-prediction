@@ -77,8 +77,8 @@ def TBL_TE(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
     SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
-    # if f % 500 == 0:
-    #     print(b0,b,St_s, St_2, B_R, B, B_max, B_min, f)
+    if f % 500 == 0:
+        print(b0,b,St_s, St_2, B_R, B, B_max, B_min, f)
 
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
 
@@ -106,7 +106,7 @@ def CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
             SPLTBL_p[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[1]
             SPLTBL_alpha[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[2]
             SPLTBL_tot[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[3]
-        # print("Section", k)
+        print("Section", k)
         # print(Reynolds[k])
     return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot
 
