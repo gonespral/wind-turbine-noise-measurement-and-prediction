@@ -78,7 +78,8 @@ def TBL_TE(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
     if f % 500 == 0:
-        print(b0,b,St_s, St_2, B_R, B, B_max, B_min, f)
+        #print(b0,b,St_s, St_2, B_R, B, B_max, B_min, f)
+        print(f, SPL_alpha, SPL_s, SPL_p, SPL_tot)
 
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
 
@@ -162,7 +163,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.title("SPL vs Frequency")
     plt.show()
 
-f = np.arange(200,10000)
+f = np.arange(2000,10000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar)
 SPL_s, SPL_p, SPL_alpha, SPL_tot = AddSections(SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot, f)
 plotone(f, SPL_s, SPL_p, SPL_alpha, SPL_tot)
