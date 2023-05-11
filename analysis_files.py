@@ -1,6 +1,7 @@
 import mat73
 import pandas as pd
 import numpy as np
+import scipy.signal as signal
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
@@ -14,6 +15,10 @@ for file in os.listdir("data/downloads"):
             bg_paths.append(f"data/downloads/{file}")
         elif "Wind" in file:
             wt_paths.append(f"data/downloads/{file}")
+
+# Uncomment the following lines to use only one background and one wind turbine file
+bg_paths = ["data/downloads/U08_Background.mat"]
+wt_paths = ["data/downloads/U08_Wind%20turbine.mat"]
 
 # ------------------------- Prepare data --------------------------------
 
@@ -39,9 +44,16 @@ for bg_data_path, wt_data_path in zip(bg_paths, wt_paths):
     df_bg = df_bg.iloc[1]
     df_wt = df_wt.iloc[1]
 
+    # Create backup without hanning window
+    df_bg_no_hanning = df_bg.copy()
+    df_wt_no_hanning = df_wt.copy()
+
     # Apply hanning window
     df_bg = df_bg * np.hanning(len(df_bg))
     df_wt = df_wt * np.hanning(len(df_wt))
+
+    # Scaling factor defined as sum of squared samples of window function
+    hann_scaling_factor = np.sum(np.hanning(len(df_bg)) ** 2)
 
     # Append to lists
     df_bg_list.append(df_bg)
@@ -60,9 +72,9 @@ for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
     df_bg_fft = pd.DataFrame(np.fft.fft(df_bg))
     df_wt_fft = pd.DataFrame(np.fft.fft(df_wt))
 
-    # Get absolute value of components
-    df_bg_fft = df_bg_fft.applymap(lambda x: np.abs(x))
-    df_wt_fft = df_wt_fft.applymap(lambda x: np.abs(x))
+    # Get absolute value of components and normalize
+    df_bg_fft = df_bg_fft.applymap(lambda x: np.abs(x) / len(df_bg))
+    df_wt_fft = df_wt_fft.applymap(lambda x: np.abs(x) / len(df_wt))
 
     # Get frequency axis
     df_bg_fft['freq'] = np.fft.fftfreq(n=len(df_bg_fft), d=1/sample_rate)
@@ -76,7 +88,8 @@ for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
     df_bg_fft_list.append(df_bg_fft)
     df_wt_fft_list.append(df_wt_fft)
 
-print(f"[*] Frequency resolution: {df_bg_fft['freq'][1]} Hz")
+freq_res = df_bg_fft['freq'][1]
+print(f"[*] Frequency resolution: {freq_res} Hz")
 
 # Plot all FFT results in df_bg_fft_list and df_wt_fft_list
 print("[*] Plotting results...")
@@ -103,16 +116,24 @@ for df_bg_fft, df_wt_fft, v_inf in zip(df_bg_fft_list, df_wt_fft_list, v_inf_lis
     # Evaluate PSD in the frequency domain
     print(f"[*] Calculating PSD for v_inf = {v_inf} m/s...")
 
-    df_bg_psd = df_bg_fft.applymap(lambda x: x ** 2)
-    df_wt_psd = df_wt_fft.applymap(lambda x: x ** 2)
+    df_bg_psd = df_bg_fft[0] ** 2
+    df_wt_psd = df_wt_fft[0] ** 2
 
-    # Double the amplitudes to account for one sided spectrum
-    df_bg_psd = df_bg_psd.applymap(lambda x: 2 * x)
-    df_wt_psd = df_wt_psd.applymap(lambda x: 2 * x)
+    # Double the amplitudes to account for one-sided spectrum, and normalize
+    df_bg_psd = df_bg_psd.apply(lambda x:  2 * x / (sample_rate * hann_scaling_factor))
+    df_wt_psd = df_wt_psd.apply(lambda x: 2 * x / (sample_rate * hann_scaling_factor))
 
     # Convert to dB
-    df_bg_psd_db = df_bg_psd.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
-    df_wt_psd_db = df_wt_psd.applymap(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+    df_bg_psd_db = df_bg_psd.apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+    df_wt_psd_db = df_wt_psd.apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+
+    # Assemble into dataframe
+    df_bg_psd_db = pd.DataFrame(df_bg_psd_db)
+    df_wt_psd_db = pd.DataFrame(df_wt_psd_db)
+
+    # Get frequency axis
+    df_bg_psd_db['freq'] = df_bg_fft['freq']
+    df_wt_psd_db['freq'] = df_wt_fft['freq']
 
     # Append to lists
     df_bg_psd_db_list.append(df_bg_psd_db)
@@ -126,11 +147,56 @@ for df_bg_psd_db, df_wt_psd_db, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_lis
     sns.lineplot(data=df_wt_psd_db, x='freq', y=0, label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
 ax1.set_title("PSD")
 ax1.grid(True)
-ax1.set_ylabel('Pressure [dB]')
+ax1.set_ylabel('PSD [dB/Hz]')
 ax2.grid(True)
-ax2.set_ylabel('Pressure [dB]')
+ax2.set_ylabel('PSD [dB/Hz]')
 ax2.set_xlabel('Frequency [Hz]')
-plt.xscale('log')
+plt.xscale('linear')
+plt.show()
+
+# --------------------------- Welch PSD -----------------------------------
+
+df_bg_welch_psd_db_list = []
+df_wt_welch_psd_db_list = []
+
+for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
+    # Evaluate PSD using Welch's method
+    print(f"[*] Calculating Welch PSD for v_inf = {v_inf} m/s...")
+
+    # Get first column of the dataframe (pressure) - this applies a hanning window
+    f, Pxx_den = signal.welch(df_bg_no_hanning, fs=sample_rate, nperseg=2048)
+    df_bg_welch_psd = pd.DataFrame({'psd': Pxx_den, 'freq': f})
+
+    f, Pxx_den = signal.welch(df_bg_no_hanning, fs=sample_rate, nperseg=2048)
+    df_wt_welch_psd = pd.DataFrame({'psd': Pxx_den, 'freq': f})
+
+    # Double the amplitudes to account for one-sided spectrum, and normalize
+    df_bg_welch_psd["psd"] = df_bg_welch_psd["psd"].apply(lambda x: 2 * x / (sample_rate * hann_scaling_factor))
+    df_wt_welch_psd["psd"] = df_wt_welch_psd["psd"].apply(lambda x: 2 * x / (sample_rate * hann_scaling_factor))
+
+    # Convert to dB
+    df_bg_welch_psd_db = df_bg_welch_psd.copy()
+    df_wt_welch_psd_db = df_wt_welch_psd.copy()
+    df_bg_welch_psd_db["psd"] = df_bg_welch_psd_db["psd"].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+    df_wt_welch_psd_db["psd"] = df_wt_welch_psd_db["psd"].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+
+    # Append to lists
+    df_bg_welch_psd_db_list.append(df_bg_welch_psd_db)
+    df_wt_welch_psd_db_list.append(df_wt_welch_psd_db)
+
+# Plot results
+print("[*] Plotting results...")
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+for df_bg_welch_psd_db, df_wt_welch_psd_db, v_inf in zip(df_bg_welch_psd_db_list, df_wt_welch_psd_db_list, v_inf_list):
+    sns.lineplot(data=df_bg_welch_psd_db, x='freq', y='psd', label=f'Background (v_inf = {v_inf} m/s)', ax=ax1)
+    sns.lineplot(data=df_wt_welch_psd_db, x='freq', y='psd', label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
+ax1.set_title("Welch PSD")
+ax1.grid(True)
+ax1.set_ylabel('PSD [dB/Hz]')
+ax2.grid(True)
+ax2.set_ylabel('PSD [dB/Hz]')
+ax2.set_xlabel('Frequency [Hz]')
+plt.xscale('linear')
 plt.show()
 
 # ---------------------------------- SPL ----------------------------------
@@ -146,17 +212,17 @@ for df_bg_psd_db, df_wt_psd_db, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_lis
     # Evaluate SPL in the frequency domain over freq_step Hz bands
     print(f"[*] Calculating SPL for v_inf = {v_inf} m/s...")
 
-    df_bg_spl = pd.DataFrame(columns=['freq', 'spl'])
-    df_wt_spl = pd.DataFrame(columns=['freq', 'spl'])
+    df_bg_spl = pd.DataFrame(columns=["freq", "spl"])
+    df_wt_spl = pd.DataFrame(columns=["freq", "spl"])
 
     for l, c, u in zip(freq_bands[:-1], freq_bands[1:], freq_bands[2:]):
         # Sum PSD in band
-        sum_bg = df_bg_psd[(df_bg_psd['freq'] >= l) & (df_bg_psd['freq'] < u)].sum()
-        sum_wt = df_wt_psd[(df_wt_psd['freq'] >= l) & (df_wt_psd['freq'] < u)].sum()
+        sum_bg = df_bg_welch_psd[(df_bg_welch_psd["freq"] >= l) & (df_bg_welch_psd["freq"] < u)].sum()
+        sum_wt = df_wt_welch_psd[(df_wt_welch_psd["freq"] >= l) & (df_wt_welch_psd["freq"] < u)].sum()
 
         # Add row to dataframe
-        df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0]}, ignore_index=True)
-        df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0]}, ignore_index=True)
+        df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * freq_res}, ignore_index=True)
+        df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * freq_res}, ignore_index=True)
 
     # Convert freq column to dB
     df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
