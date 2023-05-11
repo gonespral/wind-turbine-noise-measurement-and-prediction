@@ -143,7 +143,7 @@ def a01(Rc):
     return a0
 
 def a1(St, St_peak):
-    a = abs(np.log10(St / St_peak))
+    a = np.abs(np.log10(St / St_peak))
     return(a)
 
 def A_min1(a):
