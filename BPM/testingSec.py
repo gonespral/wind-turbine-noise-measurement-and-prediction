@@ -12,7 +12,7 @@ visc = 1.81 * 10**-5
 c_0 = 340.26
 c = 0.15
 M = U / c_0
-alpha_star = np.degrees(np.arctan(2/21))
+alpha_star = np.rad2deg(np.arctan(2/21))
 Reynolds = rho * U * c / visc
 L = 0.1
 r_e = 1
@@ -34,7 +34,7 @@ def TBL_TE(f):
     St_1mean = TBL.St_1mean1(St_1, St_2)
     St_peak = TBL.St_peak1(St_1, St_2, St_1mean)
     b0 = TBL.b01(Reynolds)
-    b = TBL.b1(St_p, St_2)
+    b = TBL.b1(St_s, St_2)
     B_min = TBL.B_min1(b)
     B_max = TBL.B_max1(b)
     B_min1 = TBL.B_min1(b0)
@@ -53,6 +53,8 @@ def TBL_TE(f):
     SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
+    if f % 100 == 0:
+        print(St_s, B)
 
 
     return SPL_s, SPL_p, SPL_alpha, SPL_tot

@@ -59,7 +59,7 @@ def TBL_TE(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
     St_1mean = TBL.St_1mean1(St_1, St_2)
     St_peak = TBL.St_peak1(St_1, St_2, St_1mean)
     b0 = TBL.b01(Reynolds)
-    b = TBL.b1(St_p, St_2)
+    b = TBL.b1(St_s, St_2)
     B_min = TBL.B_min1(b)
     B_max = TBL.B_max1(b)
     B_min1 = TBL.B_min1(b0)
