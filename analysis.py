@@ -11,6 +11,7 @@ p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
 f_lower = 800  # Hz
 f_upper = 3000 # Hz
+x_axis_ticks = [800, 1000, 1500, 2000, 2500, 3000]  # Hz
 
 # Get paths for data files
 bg_paths = []
@@ -121,6 +122,9 @@ ax2.grid(True)
 ax2.set_ylabel('Pressure [Pa]')
 ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.tight_layout()
+plt.savefig(f"saves/fft.png", dpi=300)
+plt.xticks(x_axis_ticks)
 plt.show()
 
 
@@ -220,6 +224,9 @@ ax2.grid(True)
 ax2.set_ylabel('PSD [dB/Hz]')
 ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.tight_layout()
+plt.savefig("saves/welch_psd.png", dpi=300)
+plt.xticks(x_axis_ticks)
 plt.show()
 
 # ---------------------------------- SPL ----------------------------------
@@ -244,8 +251,8 @@ for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_w
         sum_wt = df_wt_welch_psd[(df_wt_welch_psd["freq"] >= l) & (df_wt_welch_psd["freq"] < u)].sum()
 
         # Add row to dataframe
-        df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * freq_res}, ignore_index=True)
-        df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * freq_res}, ignore_index=True)
+        df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * freq_step}, ignore_index=True)
+        df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * freq_step}, ignore_index=True)
 
     # Convert freq column to dB
     df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
@@ -273,6 +280,9 @@ ax2.grid(True)
 ax2.set_ylabel('L_p [dB]')
 ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.tight_layout()
+plt.savefig("saves/spl.png", dpi=300)
+plt.xticks(x_axis_ticks)
 plt.show()
 
 # ---------------------------------- SPL_1/3 ----------------------------------
@@ -332,6 +342,8 @@ ax2.grid(True)
 ax2.set_ylabel('Pressure [dB]')
 ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.tight_layout()
+plt.savefig("saves/spl_1_3.png", dpi=300)
 plt.show()
 
 # ---------------------------------- OSPL ----------------------------------
