@@ -20,16 +20,17 @@ using the angular velocity of the turbine
 """
 
 U = np.array([7.7333,12.405,17.626,23.026,28.503,34.021,39.561,45.116,50.681,56.253])
-delta_p = np.array([0.082,0.062,0.05,0.0450101,0.0425,0.04,0.0385,0.0372,0.036,0.035])
-delta_s = np.array([0.082,0.062,0.05,0.0450101,0.0425,0.04,0.0385,0.0372,0.036,0.035])
-print(U.shape,delta_p.shape,delta_s.shape)
+delta_p = np.array([0.009, 0.008, 0.006, 0.006, 0.005, 0.005, 0.005, 0.005, 0.004, 0.004])
+delta_s = np.array([0.071, 0.055, 0.044, 0.039, 0.037, 0.035, 0.034, 0.033, 0.032, 0.031])
+# print(U.shape,delta_p.shape,delta_s.shape)
 # U = 50 * np.ones(10)
 # delta_p = 0.1 * np.ones(10)
 # delta_s = 0.001 * np.ones(10)
 
 M = U / c_0
+print(M)
 M_c = 0.8 * M                  
-alpha_star = np.degrees(np.arctan(1/7))
+alpha_star = np.degrees(np.arctan(2/21))
 Reynolds = rho * U * c / visc
 L = 0.1
 r_e = 1.22
@@ -105,7 +106,7 @@ def CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar):
             SPLTBL_p[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[1]
             SPLTBL_alpha[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[2]
             SPLTBL_tot[k, i] = TBL_TE(f[i], U[k], delta_s[k], delta_p[k], Reynolds[k], M[k], R_deltaPstar[k])[3]
-        print("Section", k)
+        # print("Section", k)
         # print(Reynolds[k])
     return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot
 
@@ -161,7 +162,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.title("SPL vs Frequency")
     plt.show()
 
-f = np.arange(1,5000)
+f = np.arange(100,5000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f, U, delta_s, delta_p, Reynolds, M, R_deltaPstar)
 SPL_s, SPL_p, SPL_alpha, SPL_tot = AddSections(SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot, f)
 plotone(f, SPL_s, SPL_p, SPL_alpha, SPL_tot)
