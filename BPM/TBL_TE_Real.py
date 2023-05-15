@@ -6,19 +6,19 @@ import numpy as np
 
 
 def gamma1(M):
-    gamma = 27.094  * M + 3.31
+    gamma = 27.094*M + 3.31
     return gamma
 
 def gamma01(M):
-    gamma0 = 23.43 * M + 4.651
+    gamma0 = 23.43*M + 4.651
     return gamma0
 
 def beta1(M):
-    beta = 72.65 * M + 10.74
+    beta = 72.65*M + 10.74
     return beta
 
 def beta01(M):
-    beta0 = -34.19 * M - 13.82
+    beta0 = -34.19*M - 13.82
     return beta0
 
 def K21(alphastar, gamma, gamma0, beta0, beta, K1):
@@ -188,12 +188,11 @@ def SPL_s1(delta_s, M, L, Dh, re, A, St_s, St_1, K1):
 
 def SPL_p1(delta_p, M, L, Dh, re, A, St_p, St_1, K1, deltaK1):
     SPL_p = 10 * np.log10( (delta_p * M**5 * L * Dh) / re**2) + A * (St_p / St_1) + (K1 - 3) + deltaK1
+    #print((10 * np.log10( (delta_p * M**5 * L * Dh) / re**2)), (A * (St_p / St_1)), (K1 - 3))
     return SPL_p
 
 def SPL_tot1(SPL_alpha, SPL_s, SPL_p):
    SPL_tot = 10 * np.log10( 10**(SPL_alpha/10) + 10**(SPL_s/10) + 10**(SPL_p/10))
    return SPL_tot
 
-def SPL_TBLTE1(SPL_s, SPL_p):
-    SPL_TBLTE = 10 * np.log10(10**(SPL_s/10) + 10**(SPL_p/10))
-    return SPL_TBLTE
+

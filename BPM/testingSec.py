@@ -2,22 +2,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 import TBL_TE_Real as TBL
 
-
-U = 56.253
-delta_p = 0.004
-delta_s = 0.031
-
+c = 0.3048
 rho = 1.225
-visc = 1.81 * 10**-5
-c_0 = 340.26
-c = 0.15
-M = U / c_0
-alpha_star = np.rad2deg(np.arctan(2/21))
+visc = 1.4529 * 10**-5
+c_0 = 340.46
+L = 0.4572
+r_e = 1.22
+Dh = 1   
+alpha_star = 1.516
+U = 71.3
+
+# delta_p = 0.00192024
+# delta_s = 0.00246888
+
 Reynolds = rho * U * c / visc
-L = 0.1
-r_e = 1
-Dh = 1    
+delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
+delta_p = 10**(-0.0432*alpha_star + 0.00113*alpha_star**2) * delta_zero
+delta_s = 10**(0.0311*alpha_star) * delta_zero
+
+
+M = U / c_0
+#alpha_star = np.rad2deg(np.arctan(2/21))
 R_deltaPstar = delta_p * U / visc
+
+
+print(Reynolds, delta_p, delta_s, M, R_deltaPstar)
+
 
 def TBL_TE(f):
     gamma = TBL.gamma1(M)
@@ -53,8 +63,8 @@ def TBL_TE(f):
     SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
-    if f % 100 == 0:
-        print(St_s, B)
+    # if f % 100 == 0:
+    #     print(St_s, B)
 
 
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
@@ -79,17 +89,19 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.plot(f, SPLTBL_alpha, 'tab:green')
     plt.plot(f, SPLTBL_tot, 'tab:red')
     plt.legend(["Pressure Side", "Suction Side", "Alpha", "Total SPL"])
-    plt.ylim((0, 80))
+    plt.ylim((20, 70))
     plt.xscale('log')
-    plt.xticks([800, 1000, 1500, 2000, 2500, 3000])
+    plt.grid(True, linestyle='--', axis='x', which="both")
+    plt.grid(True, linestyle='--', axis='y')
+    #plt.xticks([800, 1000, 1500, 2000, 2500, 3000])
     plt.title("SPL vs Frequency")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("SPL (dB)")
-    plt.gcf().set_size_inches(10, 10)
-    plt.tight_layout()
-    plt.savefig("../saves/BPM_spl.png", dpi=300)
+    #plt.gcf().set_size_inches(10, 10)
+    #plt.tight_layout()
+    #plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
 
-f = np.arange(800,3000)
+f = np.arange(100,10000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
