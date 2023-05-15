@@ -5,12 +5,13 @@ import scipy.signal as signal
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import pickle as pkl
 
 # ----------------------------- Config ----------------------------------
 p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
-f_lower = 800  # Hz
-f_upper = 3000 # Hz
+f_lower = 1  # Hz
+f_upper = 5000 # Hz
 x_axis_ticks = [800, 1000, 1500, 2000, 2500, 3000]  # Hz
 
 # Get paths for data files
@@ -24,8 +25,8 @@ for file in os.listdir("data/downloads"):
             wt_paths.append(f"data/downloads/{file}")
 
 # Uncomment the following lines to use only one background and one wind turbine file
-#bg_paths = ["data/downloads/U08_Background.mat"]
-#wt_paths = ["data/downloads/U08_Wind%20turbine.mat"]
+bg_paths = ["data/downloads/U08_Background.mat"]
+wt_paths = ["data/downloads/U08_Wind%20turbine.mat"]
 
 # ------------------------- Prepare data --------------------------------
 
@@ -68,6 +69,14 @@ for bg_data_path, wt_data_path in zip(bg_paths, wt_paths):
     df_wt_no_hanning_list.append(df_wt_no_hanning)
     v_inf_list.append(v_inf)
 
+# Load BPM model data form pickle file
+with open("BPM/saves/BPM_spl.pkl", "rb") as f:
+    bpm_model = pkl.load(f)
+    bpm_f = bpm_model[0]
+    SPLTBL_s = bpm_model[1]
+    SPLTBL_p = bpm_model[2]
+    SPLTBL_alpha = bpm_model[3]
+    SPLTBL_tot = bpm_model[4]
 
 # ---------------------------------- FFT ----------------------------------
 
@@ -191,7 +200,7 @@ for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_w
     f, Pxx_den = signal.welch(df_bg_no_hanning, fs=sample_rate, nperseg=2048, return_onesided=True, scaling='density')
     df_bg_welch_psd = pd.DataFrame({'psd': Pxx_den, 'freq': f})
 
-    f, Pxx_den = signal.welch(df_bg_no_hanning, fs=sample_rate, nperseg=2048, return_onesided=True, scaling='density')
+    f, Pxx_den = signal.welch(df_wt_no_hanning, fs=sample_rate, nperseg=2048, return_onesided=True, scaling='density')
     df_wt_welch_psd = pd.DataFrame({'psd': Pxx_den, 'freq': f})
 
     # Convert to dB
@@ -226,6 +235,22 @@ ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.tight_layout()
 plt.savefig("saves/welch_psd.png", dpi=300)
+plt.xticks(x_axis_ticks)
+plt.show()
+
+# Plot PSD wt - PSD bg as delta PSD
+print("[*] Plotting delta PSD...")
+fig, ax = plt.subplots(1, 1)
+fig.set_size_inches(10, 5)
+for df_bg_welch_psd_db, df_wt_welch_psd_db, v_inf in zip(df_bg_welch_psd_db_list, df_wt_welch_psd_db_list, v_inf_list):
+    sns.lineplot(data=df_wt_welch_psd_db["psd"] - df_bg_welch_psd_db["psd"], x=df_wt_welch_psd_db["freq"], y=df_wt_welch_psd_db["psd"] - df_bg_welch_psd_db["psd"], label=f'v_inf = {v_inf} m/s')
+ax.set_title("Delta PSD")
+ax.grid(True)
+ax.set_ylabel('Delta PSD [dB/Hz]')
+ax.set_xlabel('Frequency [Hz]')
+plt.xscale('log')
+plt.tight_layout()
+plt.savefig("saves/delta_psd.png", dpi=300)
 plt.xticks(x_axis_ticks)
 plt.show()
 
@@ -273,6 +298,10 @@ fig.set_size_inches(10, 10)
 for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_list, df_wt_spl_list, v_inf_list):
     sns.lineplot(data=df_bg_spl, x='freq', y='spl', label=f'Background (v_inf = {v_inf} m/s)', ax=ax1)
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
+bpm_df = pd.DataFrame({'freq': bpm_f, 'spl': SPLTBL_tot})
+bpm_df = bpm_df[bpm_df['freq'] <= 1500]
+sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'BPM (v_inf = {v_inf} m/s)', ax=ax1)
+sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'BPM (v_inf = {v_inf} m/s)', ax=ax2)
 ax1.set_title("SPL")
 ax1.grid(True)
 ax1.set_ylabel('L_p [dB]')

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import TBL_TE_Real as TBL
+import pickle as pkl
 
 
 U = 56.253
@@ -85,7 +86,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.title("SPL vs Frequency")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("SPL (dB)")
-    plt.gcf().set_size_inches(10, 10)
+    plt.gcf().set_size_inches(10, 5)
     plt.tight_layout()
     plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
@@ -93,3 +94,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
 f = np.arange(800,3000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
+
+# Save data to pickle file
+with open('saves/BPM_spl.pkl', 'wb') as f_:
+    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
