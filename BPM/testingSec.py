@@ -91,7 +91,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
 
-f = np.arange(800,3000)
+f = np.arange(1,10000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
 

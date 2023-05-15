@@ -10,9 +10,8 @@ import pickle as pkl
 # ----------------------------- Config ----------------------------------
 p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
-f_lower = 1  # Hz
-f_upper = 5000 # Hz
-x_axis_ticks = [800, 1000, 1500, 2000, 2500, 3000]  # Hz
+f_lower = 50  # Hz
+f_upper = 3500 # Hz
 
 # Get paths for data files
 bg_paths = []
@@ -25,8 +24,8 @@ for file in os.listdir("data/downloads"):
             wt_paths.append(f"data/downloads/{file}")
 
 # Uncomment the following lines to use only one background and one wind turbine file
-bg_paths = ["data/downloads/U08_Background.mat"]
-wt_paths = ["data/downloads/U08_Wind%20turbine.mat"]
+#bg_paths = ["data/downloads/U12_Background.mat"]
+#wt_paths = ["data/downloads/U12_Wind%20turbine.mat"]
 
 # ------------------------- Prepare data --------------------------------
 
@@ -48,8 +47,8 @@ for bg_data_path, wt_data_path in zip(bg_paths, wt_paths):
     df_wt.columns = df_wt.columns / sample_rate
 
     # Keep only one row for one microphone
-    df_bg = df_bg.iloc[60]
-    df_wt = df_wt.iloc[60]
+    df_bg = df_bg.iloc[10]
+    df_wt = df_wt.iloc[10]
 
     # Create backup without hanning window
     df_bg_no_hanning = df_bg.copy()
@@ -133,7 +132,6 @@ ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.tight_layout()
 plt.savefig(f"saves/fft.png", dpi=300)
-plt.xticks(x_axis_ticks)
 plt.show()
 
 
@@ -189,8 +187,10 @@ plt.show()
 
 df_bg_welch_psd_list = []
 df_wt_welch_psd_list = []
+df_wt_bg_welch_psd_list = []
 df_bg_welch_psd_db_list = []
 df_wt_welch_psd_db_list = []
+df_wt_bg_welch_psd_db_list = []
 
 for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_wt_no_hanning_list, v_inf_list):
     # Evaluate PSD using Welch's method
@@ -203,21 +203,31 @@ for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_w
     f, Pxx_den = signal.welch(df_wt_no_hanning, fs=sample_rate, nperseg=2048, return_onesided=True, scaling='density')
     df_wt_welch_psd = pd.DataFrame({'psd': Pxx_den, 'freq': f})
 
+    # Denoise PSD
+    df_wt_bg_welch_psd = df_wt_welch_psd.copy()
+    df_wt_bg_welch_psd['psd'] = df_wt_bg_welch_psd['psd'] - df_bg_welch_psd['psd']
+
     # Convert to dB
     df_bg_welch_psd_db = df_bg_welch_psd.copy()
     df_wt_welch_psd_db = df_wt_welch_psd.copy()
+    df_wt_bg_welch_psd_db = df_wt_bg_welch_psd.copy()
     df_bg_welch_psd_db["psd"] = df_bg_welch_psd_db["psd"].apply(lambda x: 10 * np.log10(x ** 2 / (p_ref ** 2)))
     df_wt_welch_psd_db["psd"] = df_wt_welch_psd_db["psd"].apply(lambda x: 10 * np.log10(x ** 2/ (p_ref ** 2)))
+    df_wt_bg_welch_psd_db["psd"] = df_wt_bg_welch_psd_db["psd"].apply(lambda x: 10 * np.log10(x ** 2 / (p_ref ** 2)))
 
     # Remove frequencies outside of range
     df_bg_welch_psd_db = df_bg_welch_psd_db[(df_bg_welch_psd_db['freq'] >= f_lower) & (df_bg_welch_psd_db['freq'] <= f_upper)]
     df_wt_welch_psd_db = df_wt_welch_psd_db[(df_wt_welch_psd_db['freq'] >= f_lower) & (df_wt_welch_psd_db['freq'] <= f_upper)]
+    df_wt_bg_welch_psd_db = df_wt_bg_welch_psd_db[(df_wt_bg_welch_psd_db['freq'] >= f_lower) & (df_wt_bg_welch_psd_db['freq'] <= f_upper)]
 
     # Append to lists
     df_bg_welch_psd_list.append(df_bg_welch_psd)
     df_wt_welch_psd_list.append(df_wt_welch_psd)
     df_bg_welch_psd_db_list.append(df_bg_welch_psd_db)
     df_wt_welch_psd_db_list.append(df_wt_welch_psd_db)
+    df_wt_bg_welch_psd_list.append(df_wt_bg_welch_psd)
+    df_wt_bg_welch_psd_db_list.append(df_wt_bg_welch_psd_db)
+
 
 # Plot results
 print("[*] Plotting results...")
@@ -226,7 +236,7 @@ fig.set_size_inches(10, 10)
 for df_bg_welch_psd_db, df_wt_welch_psd_db, v_inf in zip(df_bg_welch_psd_db_list, df_wt_welch_psd_db_list, v_inf_list):
     sns.lineplot(data=df_bg_welch_psd_db, x='freq', y='psd', label=f'Background (v_inf = {v_inf} m/s)', ax=ax1)
     sns.lineplot(data=df_wt_welch_psd_db, x='freq', y='psd', label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
-ax1.set_title("Welch PSD")
+ax1.set_title("PSD")
 ax1.grid(True)
 ax1.set_ylabel('PSD [dB/Hz]')
 ax2.grid(True)
@@ -235,61 +245,65 @@ ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.tight_layout()
 plt.savefig("saves/welch_psd.png", dpi=300)
-plt.xticks(x_axis_ticks)
 plt.show()
 
-# Plot PSD wt - PSD bg as delta PSD
-print("[*] Plotting delta PSD...")
-fig, ax = plt.subplots(1, 1)
+# Plot denoised results (dB)
+fig, ax = plt.subplots()
 fig.set_size_inches(10, 5)
-for df_bg_welch_psd_db, df_wt_welch_psd_db, v_inf in zip(df_bg_welch_psd_db_list, df_wt_welch_psd_db_list, v_inf_list):
-    sns.lineplot(data=df_wt_welch_psd_db["psd"] - df_bg_welch_psd_db["psd"], x=df_wt_welch_psd_db["freq"], y=df_wt_welch_psd_db["psd"] - df_bg_welch_psd_db["psd"], label=f'v_inf = {v_inf} m/s')
-ax.set_title("Delta PSD")
+for df_wt_bg_welch_psd_db, v_inf in zip(df_wt_bg_welch_psd_db_list, v_inf_list):
+    sns.lineplot(data=df_wt_bg_welch_psd_db, x='freq', y='psd', label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax)
+ax.set_title("PSD (denoised) (dB)")
 ax.grid(True)
-ax.set_ylabel('Delta PSD [dB/Hz]')
+ax.set_ylabel('PSD [dB/Hz]')
 ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.tight_layout()
-plt.savefig("saves/delta_psd.png", dpi=300)
-plt.xticks(x_axis_ticks)
+plt.savefig("saves/welch_psd_denoised.png", dpi=300)
 plt.show()
 
 # ---------------------------------- SPL ----------------------------------
 
 df_bg_spl_list = []
 df_wt_spl_list = []
+df_wt_bg_spl_list = []
 
 freq_step = 10 # Hz
 freq_bands = np.arange(0, max(df_bg_fft["freq"]), freq_step)
 
-for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, v_inf_list):
+for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, df_wt_bg_welch_psd_list, v_inf_list):
 
     # Evaluate SPL in the frequency domain over freq_step Hz bands
     print(f"[*] Calculating SPL for v_inf = {v_inf} m/s with freq_step = {freq_step} Hz...")
 
     df_bg_spl = pd.DataFrame(columns=["freq", "spl"])
     df_wt_spl = pd.DataFrame(columns=["freq", "spl"])
+    df_wt_bg_spl = pd.DataFrame(columns=["freq", "spl"])
 
     for l, c, u in zip(freq_bands[:-1], freq_bands[1:], freq_bands[2:]):
         # Sum PSD in band
         sum_bg = df_bg_welch_psd[(df_bg_welch_psd["freq"] >= l) & (df_bg_welch_psd["freq"] < u)].sum()
         sum_wt = df_wt_welch_psd[(df_wt_welch_psd["freq"] >= l) & (df_wt_welch_psd["freq"] < u)].sum()
+        sum_wt_bg = df_wt_bg_welch_psd[(df_wt_bg_welch_psd["freq"] >= l) & (df_wt_bg_welch_psd["freq"] < u)].sum()
 
         # Add row to dataframe
         df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * freq_step}, ignore_index=True)
         df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * freq_step}, ignore_index=True)
+        df_wt_bg_spl = df_wt_bg_spl.append({'freq': c, 'spl': sum_wt_bg[0] * freq_step}, ignore_index=True)
 
     # Convert freq column to dB
     df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
     df_wt_spl['spl'] = df_wt_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+    df_wt_bg_spl['spl'] = df_wt_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
 
     # Remove frequencies outside of range
     df_bg_spl = df_bg_spl[(df_bg_spl['freq'] >= f_lower) & (df_bg_spl['freq'] <= f_upper)]
     df_wt_spl = df_wt_spl[(df_wt_spl['freq'] >= f_lower) & (df_wt_spl['freq'] <= f_upper)]
+    df_wt_bg_spl = df_wt_bg_spl[(df_wt_bg_spl['freq'] >= f_lower) & (df_wt_bg_spl['freq'] <= f_upper)]
 
     # Append to lists
     df_bg_spl_list.append(df_bg_spl)
     df_wt_spl_list.append(df_wt_spl)
+    df_wt_bg_spl_list.append(df_wt_bg_spl)
 
 # Plot results
 print("[*] Plotting results...")
@@ -299,8 +313,7 @@ for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_list, df_wt_spl_list, v_inf_lis
     sns.lineplot(data=df_bg_spl, x='freq', y='spl', label=f'Background (v_inf = {v_inf} m/s)', ax=ax1)
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
 bpm_df = pd.DataFrame({'freq': bpm_f, 'spl': SPLTBL_tot})
-bpm_df = bpm_df[bpm_df['freq'] <= 1500]
-sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'BPM (v_inf = {v_inf} m/s)', ax=ax1)
+bpm_df = bpm_df[(bpm_df['freq'] >= f_lower) & (bpm_df['spl'] >= 30)]
 sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'BPM (v_inf = {v_inf} m/s)', ax=ax2)
 ax1.set_title("SPL")
 ax1.grid(True)
@@ -311,8 +324,23 @@ ax2.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.tight_layout()
 plt.savefig("saves/spl.png", dpi=300)
-plt.xticks(x_axis_ticks)
 plt.show()
+
+# Plot df_wt_bg_spl
+fig, ax = plt.subplots()
+fig.set_size_inches(10, 10)
+for df_wt_bg_spl, v_inf in zip(df_wt_bg_spl_list, v_inf_list):
+    sns.lineplot(data=df_wt_bg_spl, x='freq', y='spl', label=f'Wind turbine (v_inf = {v_inf} m/s)')
+sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'BPM (v_inf = {v_inf} m/s)')
+ax.set_title("SPL (denoised)")
+ax.grid(True)
+ax.set_ylabel('L_p [dB]')
+ax.set_xlabel('Frequency [Hz]')
+plt.xscale('log')
+plt.tight_layout()
+plt.savefig("saves/spl_wt_bg.png", dpi=300)
+plt.show()
+
 
 # ---------------------------------- SPL_1/3 ----------------------------------
 
@@ -342,8 +370,8 @@ for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_w
         sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= l) & (df_wt_welch_psd['freq'] < u)].sum()
 
         # Add row to dataframe
-        df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0]}, ignore_index=True)
-        df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0]}, ignore_index=True)
+        df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * (u - l)}, ignore_index=True)
+        df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * (u - l)}, ignore_index=True)
 
     # Convert freq column to dB
     df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
@@ -364,6 +392,7 @@ fig.set_size_inches(10, 10)
 for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_1_3_list, df_wt_spl_1_3_list, v_inf_list):
     sns.lineplot(data=df_bg_spl, x='freq', y='spl', label=f'Background (v_inf = {v_inf} m/s)', ax=ax1)
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
+sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'BPM (v_inf = {v_inf} m/s)', ax=ax2)
 ax1.set_title("SPL 1/3 octave")
 ax1.grid(True)
 ax1.set_ylabel('Pressure [dB]')
@@ -382,8 +411,8 @@ OSPL_wt_list = []
 
 for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, v_inf_list):
     # Sum PSD in band f_lower to f_upper
-    sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= f_lower) & (df_bg_welch_psd['freq'] <= f_upper)].sum()
-    sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= f_lower) & (df_wt_welch_psd['freq'] <= f_upper)].sum()
+    sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= 800) & (df_bg_welch_psd['freq'] <= 3000)].sum()
+    sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= 800) & (df_wt_welch_psd['freq'] <= 3000)].sum()
 
     # Calculate OSPL
     ospl_bg = 10 * np.log10(sum_bg[0] / (p_ref ** 2))
@@ -407,7 +436,7 @@ sns.scatterplot(x=v_inf_list, y=OSPL_wt_list, label='Wind turbine', ax=ax)
 sns.lineplot(x=v_inf_list, y=OSPL_bg_list, ax=ax)
 sns.lineplot(x=v_inf_list, y=OSPL_wt_list, ax=ax)
 
-ax.set_title(f"OSPL ({f_lower} - {f_upper} Hz)")
+ax.set_title(f"OSPL ({800} - {3000} Hz)")
 ax.grid(True)
 ax.set_ylabel('OSPL [dB]')
 ax.set_xlabel('v_inf [m/s]')
