@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import TBL_TE_Real as TBL
+import pickle as pkl
 
 c = 0.3048
 rho = 1.225
@@ -105,3 +106,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
 f = np.arange(100,10000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
+
+# Save data to pickle file
+with open('saves/BPM_spl.pkl', 'wb') as f_:
+    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
