@@ -14,9 +14,12 @@ U = 71.3
 
 
 Reynolds = rho * U * c / visc
-delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
-delta_p = 10**(-0.0432*alpha_star + 0.00113*alpha_star**2) * delta_zero
-delta_s = 10**(0.0311*alpha_star) * delta_zero
+# delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
+# delta_p = 10**(-0.0432*alpha_star + 0.00113*alpha_star**2) * delta_zero
+# delta_s = 10**(0.0311*alpha_star) * delta_zero
+
+delta_p = 0.00192024
+delta_s = 0.00246888
 
 
 M = U / c_0
@@ -45,6 +48,7 @@ def TBL_TE(f):
     B_maxb0 = TBL.B_max1(b0)
     B_R = TBL.B_R1(B_minb0, B_maxb0)
     B = TBL.B1(B_min, B_R, B_max)
+
     a0 = TBL.a01(Reynolds)
 
     ap = TBL.a1(St_p, St_peak) 
@@ -60,9 +64,9 @@ def TBL_TE(f):
     A_maxS = TBL.A_max1(aS)
     AS = TBL.A1(A_minS, A_R, A_maxS) 
 
-    SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, St_s, St_2, K2)
-    SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, AS, St_s, St_1, K1)
-    SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, Ap, St_p, St_1, K1, deltaK1)
+    SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, K2)
+    SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, AS, K1)
+    SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, Ap, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
 
 
@@ -70,10 +74,10 @@ def TBL_TE(f):
 
 
 def CalculateSPL(f): 
-    SPLTBL_tot = []
-    SPLTBL_alpha = []
-    SPLTBL_p = []
     SPLTBL_s = []
+    SPLTBL_p = []
+    SPLTBL_alpha = []
+    SPLTBL_tot = []
     for i in f:
         SPLTBL_s.append(TBL_TE(i)[0])
         SPLTBL_p.append(TBL_TE(i)[1])
