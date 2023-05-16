@@ -3,21 +3,24 @@ import matplotlib.pyplot as plt
 import TBL_TE_Real as TBL
 import pickle as pkl
 
-c = 0.15
-#c = 0.3048
+#c = 0.15
+c = 0.3048
 rho = 1.225
-visc = 1.4529 * 10**-5
+visc = 1.7529 * 10**-5
 c_0 = 340.46
-L = 0.1
-#L = 0.4572
+#L = 0.1
+L = 0.4572
 r_e = 1.22
 Dh = 1   
-alpha_star = np.rad2deg(np.arctan(2/21))
+#alpha_star = np.rad2deg(np.arctan(2/21))
 #alpha_star = 1.516
-U = 56.253
+alpha_star = 0
+U = 71.3
 
-delta_p = 0.00057
-delta_s = 0.00465
+# delta_p = 0.00057
+# delta_s = 0.00465
+delta_p = 0.00192
+delta_s = 0.00246
 
 Reynolds = rho * U * c / visc
 # delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
@@ -55,26 +58,32 @@ def TBL_TE(f):
     B_R = TBL.B_R1(B_minb0, B_maxb0)
     B = TBL.B1(B_min, B_R, B_max)
     a0 = TBL.a01(Reynolds)
-    a = TBL.a1(St_s, St_peak) 
-    A_min = TBL.A_min1(a)
-    A_max = TBL.A_max1(a)
+
+    ap = TBL.a1(St_p, 0.05) 
+    A_minp = TBL.A_min1(ap)
+    A_maxp = TBL.A_max1(ap)
     A_mina0 = TBL.A_min1(a0)
     A_maxa0 = TBL.A_max1(a0)
-    A_R = TBL.A_R1(A_mina0, A_maxa0)
-    A = TBL.A1(A_min, A_R, A_max) 
+    A_Rp = TBL.A_R1(A_mina0, A_maxa0)
+    Ap = TBL.A1(A_minp, A_Rp, A_maxp) 
+
+    aS= TBL.a1(St_s, 0.05) 
+    A_minS = TBL.A_min1(aS)
+    A_maxS = TBL.A_max1(aS)
+    A_RS = TBL.A_R1(A_mina0, A_maxa0)
+    AS = TBL.A1(A_minS, A_RS, A_maxS) 
+
     SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, St_s, St_2, K2)
-    SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
-    SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
+    SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, AS, St_s, St_1, K1)
+    SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, Ap, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
-    # if f % 100 == 0:
-    #     print(St_1)
 
 
     return SPL_s, SPL_p, SPL_alpha, SPL_tot
 
-#import pickle
 
 def CalculateSPL(f): 
+    ameanl = []
     SPLTBL_tot = []
     SPLTBL_alpha = []
     SPLTBL_p = []
@@ -84,7 +93,7 @@ def CalculateSPL(f):
         SPLTBL_p.append(TBL_TE(i)[1])
         SPLTBL_alpha.append(TBL_TE(i)[2])
         SPLTBL_tot.append(TBL_TE(i)[3])
-    return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot
+    return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot, ameanl
 
 
 def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
@@ -93,7 +102,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.plot(f, SPLTBL_alpha, 'tab:green')
     plt.plot(f, SPLTBL_tot, 'tab:red')
     plt.legend(["Pressure Side", "Suction Side", "Alpha", "Total SPL"])
-    plt.ylim((20, 70))
+    plt.ylim((-30, 100))
     plt.xscale('log')
     plt.grid(True, linestyle='--', axis='x', which="both")
     plt.grid(True, linestyle='--', axis='y')
@@ -106,17 +115,9 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     #plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
 
-
-print(TBL_TE(100))
-f = np.arange(1,10000)
-SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f)
+f = np.arange(200, 10000)
+SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot, ameanl = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
-
-# import pickle
-# import pickle
-# import pickle
 # Save data to pickle file
-#with open('saves/BPM_spl.pkl', 'wb') as f_:
+# with open('saves/BPM_spl.pkl', 'wb') as f_:
 #    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
-
-#import pickle
