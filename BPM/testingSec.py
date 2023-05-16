@@ -7,7 +7,7 @@ c = 0.3048
 rho = 1.225
 visc = 1.4529 * 10**-5
 c_0 = 340.46
-L = 0.4572
+L = 0.04572
 r_e = 1.22
 Dh = 1   
 alpha_star = 1.516
@@ -48,47 +48,48 @@ def TBL_TE(f):
     b = TBL.b1(St_s, St_2)
     B_min = TBL.B_min1(b)
     B_max = TBL.B_max1(b)
-    B_min1 = TBL.B_min1(b0)
-    B_max1 = TBL.B_max1(b0)
-    B_R = TBL.B_R1(B_min1, B_max1)
+    B_minb0 = TBL.B_min1(b0)
+    B_maxb0 = TBL.B_max1(b0)
+    B_R = TBL.B_R1(B_minb0, B_maxb0)
     B = TBL.B1(B_min, B_R, B_max)
     a0 = TBL.a01(Reynolds)
     a = TBL.a1(St_s, St_peak) 
     A_min = TBL.A_min1(a)
     A_max = TBL.A_max1(a)
-    A_min1 = TBL.A_min1(a0)
-    A_max1 = TBL.A_max1(a0)
-    A_R = TBL.A_R1(A_min1, A_max1)
+    A_mina0 = TBL.A_min1(a0)
+    A_maxa0 = TBL.A_max1(a0)
+    A_R = TBL.A_R1(A_mina0, A_maxa0)
     A = TBL.A1(A_min, A_R, A_max) 
     SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, St_s, St_2, K2)
     SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, A, St_s, St_1, K1)
     SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, A, St_p, St_1, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
     # if f % 100 == 0:
-    #     print(St_s, B)
+    #     print(St_1)
 
 
-    return SPL_s, SPL_p, SPL_alpha, SPL_tot
+    return SPL_p
 
+#import pickle
 
 def CalculateSPL(f): 
     SPLTBL_tot = []
     SPLTBL_alpha = []
     SPLTBL_p = []
     SPLTBL_s = []
-    for i in range(len(f)):
-        SPLTBL_s.append(TBL_TE(f[i])[0])
-        SPLTBL_p.append(TBL_TE(f[i])[1])
-        SPLTBL_alpha.append(TBL_TE(f[i])[2])
-        SPLTBL_tot.append(TBL_TE(f[i])[3])
-    return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot
+    for i in f:
+        #SPLTBL_s.append(TBL_TE(i)[0])
+        SPLTBL_p.append(TBL_TE(i))
+        #SPLTBL_alpha.append(TBL_TE(i)[2])
+        #SPLTBL_tot.append(TBL_TE(i)[3])
+    return SPLTBL_p
 
 
-def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
+def plotone(f, SPLTBL_p):
     plt.plot(f, SPLTBL_p)
-    plt.plot(f, SPLTBL_s, 'tab:orange')
-    plt.plot(f, SPLTBL_alpha, 'tab:green')
-    plt.plot(f, SPLTBL_tot, 'tab:red')
+    #plt.plot(f, SPLTBL_s, 'tab:orange')
+    #plt.plot(f, SPLTBL_alpha, 'tab:green')
+    #plt.plot(f, SPLTBL_tot, 'tab:red')
     plt.legend(["Pressure Side", "Suction Side", "Alpha", "Total SPL"])
     plt.ylim((20, 70))
     plt.xscale('log')
@@ -103,10 +104,15 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     #plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
 
-f = np.arange(100,10000)
-SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f)
-plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
 
+print(TBL_TE(100))
+f = np.arange(1,10000)
+SPLTBL_p = CalculateSPL(f)
+#plotone(f, SPLTBL_p)
+
+# import pickle
+# import pickle
+# import pickle
 # Save data to pickle file
-with open('saves/BPM_spl.pkl', 'wb') as f_:
-    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
+#with open('saves/BPM_spl.pkl', 'wb') as f_:
+#    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)

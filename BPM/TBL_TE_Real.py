@@ -25,7 +25,7 @@ def K21(alphastar, gamma, gamma0, beta0, beta, K1):
     if alphastar < (gamma0 - gamma):
         K2 = K1 - 1000
     elif (gamma0 - gamma) <= alphastar <= (gamma0 + gamma):
-        K2 = K1 + (beta**2 - (beta/gamma)**2 * (alphastar - gamma0))**0.5 + beta0
+        K2 = K1 + (beta**2 - (beta/gamma)**2 * (alphastar - gamma0)**2)**0.5 + beta0
     elif alphastar > (gamma0 + gamma):
         K2 = K1 - 12
     return K2
@@ -61,7 +61,7 @@ def St_s1(f, delta_s, U):
     return St_s
 
 def St_11(M):
-    St_1 = 0.02 * M**(-0.6)
+    St_1 = 0.02 * (M**(-0.6))
     return St_1
 
 #this is in deg (alphastar)
@@ -69,7 +69,7 @@ def St_21(St_1, alphastar):
     if alphastar < 1.33:
         St_2 = St_1 * 1
     elif 1.33 <= alphastar <= 12.5:
-        St_2 = St_1 * (10**(0.0054* (alphastar-1.33)**2 ))
+        St_2 = St_1 * (10**(0.0054 * (alphastar - 1.33)**2 ))
     elif alphastar > 12.5:
         St_2 = St_1 * 4.72
     return St_2
