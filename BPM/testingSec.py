@@ -101,9 +101,9 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.title("BPM output")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("SPL (dB)")
-    #plt.gcf().set_size_inches(10, 10)
-    #plt.tight_layout()
-    #plt.savefig("../saves/BPM_spl.png", dpi=300)
+    plt.gcf().set_size_inches(10, 5)
+    plt.tight_layout()
+    plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
 
 
@@ -112,11 +112,6 @@ f = np.arange(1,10000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
 
-# import pickle
-# import pickle
-# import pickle
 # Save data to pickle file
-#with open('saves/BPM_spl.pkl', 'wb') as f_:
-#    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
-
-#import pickle
+with open('saves/BPM_spl.pkl', 'wb') as f_:
+    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)

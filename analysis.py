@@ -8,14 +8,17 @@ import os
 import pickle as pkl
 from playsound import playsound
 
+with open('misc/windmill.txt', 'r') as f:
+    print(f.read())
 
 # ----------------------------- Config ----------------------------------
 p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
-f_lower = 50  # Hz
-f_upper = 3500 # Hz
+f_lower = 500  # Hz
+f_upper = 5000 # Hz
 size_x = 12
 size_y = 8
+x_ticks = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
 
 # Get paths for data files
 bg_paths = []
@@ -28,8 +31,8 @@ for file in os.listdir('data/downloads'):
             wt_paths.append(f'data/downloads/{file}')
 
 # Uncomment the following lines to use only one background and one wind turbine file
-#bg_paths = ['data/downloads/U12_Background.mat']
-#wt_paths = ['data/downloads/U12_Wind%20turbine.mat']
+#bg_paths = ['data/downloads/U08_Background.mat']
+#wt_paths = ['data/downloads/U08_Wind%20turbine.mat']
 
 # ------------------------- Prepare data --------------------------------
 
@@ -130,6 +133,7 @@ ax.set_title('FFT')
 ax.grid(True)
 ax.set_ylabel('Pressure [Pa]')
 plt.xscale('log')
+plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig(f'saves/fft.png', dpi=300)
 plt.show()
@@ -197,10 +201,20 @@ for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_w
     print(f'[*] Calculating Welch PSD for v_inf = {v_inf} m/s...')
 
     # Get first column of the dataframe (pressure) - this applies a hanning window
-    f, Pxx_den = signal.welch(df_bg_no_hanning, fs=sample_rate, nperseg=2048, return_onesided=True, scaling='density')
+    f, Pxx_den = signal.welch(df_bg_no_hanning,
+                              fs=sample_rate,
+                              nperseg=2048,
+                              return_onesided=True,
+                              scaling='density',
+                              noverlap=0)
     df_bg_welch_psd = pd.DataFrame({'psd': Pxx_den, 'freq': f})
 
-    f, Pxx_den = signal.welch(df_wt_no_hanning, fs=sample_rate, nperseg=2048, return_onesided=True, scaling='density')
+    f, Pxx_den = signal.welch(df_wt_no_hanning,
+                              fs=sample_rate,
+                              nperseg=2048,
+                              return_onesided=True,
+                              scaling='density',
+                              noverlap=0)
     df_wt_welch_psd = pd.DataFrame({'psd': Pxx_den, 'freq': f})
 
     # Denoise PSD
@@ -238,7 +252,9 @@ for df_bg_welch_psd_db, df_wt_welch_psd_db, v_inf in zip(df_bg_welch_psd_db_list
 ax.set_title('PSD')
 ax.grid(True)
 ax.set_ylabel('PSD [dB/Hz]')
+ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig('saves/welch_psd.png', dpi=300)
 plt.show()
@@ -253,6 +269,7 @@ ax.grid(True)
 ax.set_ylabel('PSD [dB/Hz]')
 ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig('saves/welch_psd_denoised.png', dpi=300)
 plt.show()
@@ -308,12 +325,14 @@ fig.set_size_inches(size_x, size_y)
 for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_list, df_wt_spl_list, v_inf_list):
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax)
 bpm_df = pd.DataFrame({'freq': bpm_f, 'spl': SPLTBL_tot})
-bpm_df = bpm_df[(bpm_df['freq'] >= f_lower) & (bpm_df['spl'] >= 30)]
-sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = {v_inf} m/s', ax=ax)
+bpm_df = bpm_df[(bpm_df['freq'] >= f_lower) & (bpm_df['freq'] <= f_upper)]
+sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = x m/s', ax=ax)
 ax.set_title('SPL')
 ax.grid(True)
 ax.set_ylabel('L_p [dB]')
+ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig('saves/spl.png', dpi=300)
 plt.show()
@@ -329,10 +348,10 @@ ax.grid(True)
 ax.set_ylabel('L_p [dB]')
 ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig('saves/spl_wt_bg.png', dpi=300)
 plt.show()
-
 
 # ---------------------------------- SPL_1/3 ----------------------------------
 
@@ -383,11 +402,12 @@ fig, ax = plt.subplots()
 fig.set_size_inches(size_x, size_y)
 for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_1_3_list, df_wt_spl_1_3_list, v_inf_list):
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax)
-sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = {v_inf} m/s', ax=ax)
 ax.set_title('SPL 1/3')
 ax.grid(True)
 ax.set_ylabel('Pressure [dB]')
+ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
+plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig('saves/spl_1_3.png', dpi=300)
 plt.show()
@@ -400,12 +420,12 @@ OSPL_wt_list = []
 
 for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, v_inf_list):
     # Sum PSD in band f_lower to f_upper
-    sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= 800) & (df_bg_welch_psd['freq'] <= 3000)].sum()
-    sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= 800) & (df_wt_welch_psd['freq'] <= 3000)].sum()
+    sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= 1000) & (df_bg_welch_psd['freq'] <= 2000)].sum()
+    sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= 1000) & (df_wt_welch_psd['freq'] <= 2000)].sum()
 
     # Calculate OSPL
-    ospl_bg = 10 * np.log10(sum_bg[0] / (p_ref ** 2))
-    ospl_wt = 10 * np.log10(sum_wt[0] / (p_ref ** 2))
+    ospl_bg = 10 * np.log10(sum_bg[0] * freq_res / (p_ref ** 2))
+    ospl_wt = 10 * np.log10(sum_wt[0] * freq_res / (p_ref ** 2))
 
     # Print results
     print(f'[*] v_inf: {v_inf} m/s')
@@ -416,11 +436,9 @@ for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_w
     OSPL_bg_list.append(ospl_bg)
     OSPL_wt_list.append(ospl_wt)
 
-# True trend
-trend_fn = np.polyfit(v_inf_list, OSPL_wt_list, 1)
+# Trendline Alogx + B
 trend_ideal_fn = np.polyfit(np.log(v_inf_list), OSPL_wt_list, 1)
-
-print(f'[*] Trend: {trend_fn[0]:.2f} * x + {trend_fn[1]:.2f}')
+print(f'[*] Trendline: {trend_ideal_fn[0]}*log(x) + {trend_ideal_fn[1]}')
 
 # Plot OSPL vs v_inf as scatter plot with line connecting points
 print('[*] Plotting results...')
@@ -429,9 +447,11 @@ fig.set_size_inches(size_x, size_y)
 sns.scatterplot(x=v_inf_list, y=OSPL_wt_list, ax=ax, color='blue', label='Wind turbine OSPL')
 
 # Plot trend line (dB scale)
-x = np.linspace(v_inf_list[0], v_inf_list[-1], 100)
-y = trend_fn[0] * x + trend_fn[1]
-sns.lineplot(x=x, y=y, ax=ax, color='blue', label=f'{trend_fn[0]:.2f} * x + {trend_fn[1]:.2f}', linestyle='--')
+x = np.linspace(min(v_inf_list), max(v_inf_list), 100)
+y = trend_ideal_fn[0] * np.log(x) + trend_ideal_fn[1]
+print(x)
+print(y)
+sns.lineplot(x=x, y=y, ax=ax, color='blue', label=f'{trend_ideal_fn[0]:.2f}*log(x) + {trend_ideal_fn[1]:.2f}')
 
 ax.set_title(f'OSPL ({800} - {3000} Hz)')
 ax.grid(True)
