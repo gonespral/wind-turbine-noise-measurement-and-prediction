@@ -3,24 +3,24 @@ import matplotlib.pyplot as plt
 import TBL_TE_Real as TBL
 import pickle as pkl
 
-#c = 0.15
-c = 0.3048
+c = 0.15
+#c = 0.3048
 rho = 1.225
 visc = 1.7529 * 10**-5
 c_0 = 340.46
-#L = 0.1
-L = 0.4572
+L = 0.1
+#L = 0.4572
 r_e = 1.22
 Dh = 1   
-#alpha_star = np.rad2deg(np.arctan(2/21))
+alpha_star = np.rad2deg(np.arctan(2/21))
 #alpha_star = 1.516
-alpha_star = 0
-U = 71.3
+#alpha_star = 0
+U = 56.25
 
-# delta_p = 0.00057
-# delta_s = 0.00465
-delta_p = 0.00192
-delta_s = 0.00246
+delta_p = 0.00057
+delta_s = 0.00465
+#delta_p = 0.00192
+#delta_s = 0.00246
 
 Reynolds = rho * U * c / visc
 # delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
@@ -73,9 +73,9 @@ def TBL_TE(f):
     A_RS = TBL.A_R1(A_mina0, A_maxa0)
     AS = TBL.A1(A_minS, A_RS, A_maxS) 
 
-    SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, St_s, St_2, K2)
-    SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, AS, St_s, St_1, K1)
-    SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, Ap, St_p, St_1, K1, deltaK1)
+    SPL_alpha = TBL.SPL_alpha1(delta_s, M, L, Dh, r_e, B, K2)
+    SPL_s = TBL.SPL_s1(delta_s, M, L, Dh, r_e, AS, K1)
+    SPL_p = TBL.SPL_p1(delta_p, M, L, Dh, r_e, Ap, K1, deltaK1)
     SPL_tot =  TBL.SPL_tot1(SPL_alpha, SPL_s, SPL_p)
 
 
@@ -106,18 +106,19 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.xscale('log')
     plt.grid(True, linestyle='--', axis='x', which="both")
     plt.grid(True, linestyle='--', axis='y')
-    #plt.xticks([800, 1000, 1500, 2000, 2500, 3000])
     plt.title("BPM output")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("SPL (dB)")
-    #plt.gcf().set_size_inches(10, 10)
-    #plt.tight_layout()
-    #plt.savefig("../saves/BPM_spl.png", dpi=300)
+    plt.gcf().set_size_inches(10, 10)
+    plt.tight_layout()
+    plt.xticks([800, 1000, 1500, 2000, 2500, 3000])
+    plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
 
-f = np.arange(200, 10000)
+f = np.arange(50, 10000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot, ameanl = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
+
 # Save data to pickle file
-# with open('saves/BPM_spl.pkl', 'wb') as f_:
-#    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
+with open('saves/BPM_spl.pkl', 'wb') as f_:
+    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
