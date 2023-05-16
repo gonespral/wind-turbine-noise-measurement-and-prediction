@@ -102,7 +102,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.plot(f, SPLTBL_alpha, 'tab:green')
     plt.plot(f, SPLTBL_tot, 'tab:red')
     plt.legend(["Pressure Side", "Suction Side", "Alpha", "Total SPL"])
-    plt.ylim((-30, 100))
+    plt.ylim((20, 70))
     plt.xscale('log')
     plt.grid(True, linestyle='--', axis='x', which="both")
     plt.grid(True, linestyle='--', axis='y')
