@@ -120,8 +120,8 @@ for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
     df_bg_fft_list.append(df_bg_fft)
     df_wt_fft_list.append(df_wt_fft)
 
-freq_res = df_bg_fft_list[0]['freq'][1] - df_bg_fft_list[0]['freq'][0]
-print(f'[*] Frequency resolution: {freq_res} Hz')
+freq_res_fft = df_bg_fft_list[0]['freq'][1] - df_bg_fft_list[0]['freq'][0]
+print(f'[*] Frequency resolution: {freq_res_fft} Hz')
 
 # Plot all FFT results in df_bg_fft_list and df_wt_fft_list
 print('[*] Plotting results...')
@@ -225,14 +225,18 @@ for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_w
     df_bg_welch_psd_db = df_bg_welch_psd.copy()
     df_wt_welch_psd_db = df_wt_welch_psd.copy()
     df_wt_bg_welch_psd_db = df_wt_bg_welch_psd.copy()
-    df_bg_welch_psd_db['psd'] = df_bg_welch_psd_db['psd'].apply(lambda x: 10 * np.log10(x ** 2 / (p_ref ** 2)))
-    df_wt_welch_psd_db['psd'] = df_wt_welch_psd_db['psd'].apply(lambda x: 10 * np.log10(x ** 2/ (p_ref ** 2)))
-    df_wt_bg_welch_psd_db['psd'] = df_wt_bg_welch_psd_db['psd'].apply(lambda x: 10 * np.log10(x ** 2 / (p_ref ** 2)))
+    df_bg_welch_psd_db['psd'] = df_bg_welch_psd_db['psd'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+    df_wt_welch_psd_db['psd'] = df_wt_welch_psd_db['psd'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+    df_wt_bg_welch_psd_db['psd'] = df_wt_bg_welch_psd_db['psd'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
 
     # Remove frequencies outside of range
     df_bg_welch_psd_db = df_bg_welch_psd_db[(df_bg_welch_psd_db['freq'] >= f_lower) & (df_bg_welch_psd_db['freq'] <= f_upper)]
     df_wt_welch_psd_db = df_wt_welch_psd_db[(df_wt_welch_psd_db['freq'] >= f_lower) & (df_wt_welch_psd_db['freq'] <= f_upper)]
     df_wt_bg_welch_psd_db = df_wt_bg_welch_psd_db[(df_wt_bg_welch_psd_db['freq'] >= f_lower) & (df_wt_bg_welch_psd_db['freq'] <= f_upper)]
+
+    # Reset index
+    df_bg_welch_psd_db = df_bg_welch_psd_db.reset_index(drop=True)
+    df_wt_welch_psd_db = df_wt_welch_psd_db.reset_index(drop=True)
 
     # Append to lists
     df_bg_welch_psd_list.append(df_bg_welch_psd)
@@ -242,6 +246,8 @@ for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_w
     df_wt_bg_welch_psd_list.append(df_wt_bg_welch_psd)
     df_wt_bg_welch_psd_db_list.append(df_wt_bg_welch_psd_db)
 
+freq_res_psd = df_bg_welch_psd_db['freq'][1] - df_bg_welch_psd_db['freq'][0]
+print(f'[*] Frequency resolution: {freq_res_psd} Hz')
 
 # Plot results
 print('[*] Plotting results...')
@@ -303,7 +309,7 @@ for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_wel
         df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * freq_step}, ignore_index=True)
         df_wt_bg_spl = df_wt_bg_spl.append({'freq': c, 'spl': sum_wt_bg[0] * freq_step}, ignore_index=True)
 
-    # Convert freq column to dB
+    # Convert spl column to dB
     df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
     df_wt_spl['spl'] = df_wt_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
     df_wt_bg_spl['spl'] = df_wt_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
@@ -384,7 +390,7 @@ for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_w
         df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * (u - l)}, ignore_index=True)
         df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * (u - l)}, ignore_index=True)
 
-    # Convert freq column to dB
+    # Convert spl column to dB
     df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
     df_wt_spl['spl'] = df_wt_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
 
@@ -420,12 +426,12 @@ OSPL_wt_list = []
 
 for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, v_inf_list):
     # Sum PSD in band f_lower to f_upper
-    sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= 1000) & (df_bg_welch_psd['freq'] <= 2000)].sum()
-    sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= 1000) & (df_wt_welch_psd['freq'] <= 2000)].sum()
+    sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= 800) & (df_bg_welch_psd['freq'] <= 3000)].sum()
+    sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= 800) & (df_wt_welch_psd['freq'] <= 3000)].sum()
 
     # Calculate OSPL
-    ospl_bg = 10 * np.log10(sum_bg[0] * freq_res / (p_ref ** 2))
-    ospl_wt = 10 * np.log10(sum_wt[0] * freq_res / (p_ref ** 2))
+    ospl_bg = 10 * np.log10((sum_bg[0] * freq_res_psd) / (p_ref ** 2))
+    ospl_wt = 10 * np.log10((sum_wt[0] * freq_res_psd) / (p_ref ** 2))
 
     # Print results
     print(f'[*] v_inf: {v_inf} m/s')
@@ -436,9 +442,10 @@ for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_w
     OSPL_bg_list.append(ospl_bg)
     OSPL_wt_list.append(ospl_wt)
 
-# Trendline Alogx + B
-trend_ideal_fn = np.polyfit(np.log(v_inf_list), OSPL_wt_list, 1)
+# Trendline A * log(x) + B
+trend_ideal_fn = np.polyfit(np.log10(v_inf_list), OSPL_wt_list, 1)
 print(f'[*] Trendline: {trend_ideal_fn[0]}*log(x) + {trend_ideal_fn[1]}')
+print(f'[*] R^2: {np.corrcoef(np.log10(v_inf_list), OSPL_wt_list)[0, 1] ** 2}')
 
 # Plot OSPL vs v_inf as scatter plot with line connecting points
 print('[*] Plotting results...')
@@ -448,9 +455,7 @@ sns.scatterplot(x=v_inf_list, y=OSPL_wt_list, ax=ax, color='blue', label='Wind t
 
 # Plot trend line (dB scale)
 x = np.linspace(min(v_inf_list), max(v_inf_list), 100)
-y = trend_ideal_fn[0] * np.log(x) + trend_ideal_fn[1]
-print(x)
-print(y)
+y = trend_ideal_fn[0] * np.log10(x) + trend_ideal_fn[1]
 sns.lineplot(x=x, y=y, ax=ax, color='blue', label=f'{trend_ideal_fn[0]:.2f}*log(x) + {trend_ideal_fn[1]:.2f}')
 
 ax.set_title(f'OSPL ({800} - {3000} Hz)')
