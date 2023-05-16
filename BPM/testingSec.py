@@ -96,7 +96,7 @@ def plotone(f, SPLTBL_p):
     plt.grid(True, linestyle='--', axis='x', which="both")
     plt.grid(True, linestyle='--', axis='y')
     #plt.xticks([800, 1000, 1500, 2000, 2500, 3000])
-    plt.title("SPL vs Frequency")
+    plt.title("BPM output")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("SPL (dB)")
     #plt.gcf().set_size_inches(10, 10)
