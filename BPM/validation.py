@@ -1,28 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import TBL_TE_Real as TBL
+import common
 
 c = 0.3048
-rho = 1.225
+#rho = 1.225
 visc = 1.4529 * 10**-5
 c_0 = 340.46
 L = 0.4572
 r_e = 1.22
-Dh = 1   
 alpha_star = 1.516
 U = 71.3
-
-
-Reynolds = rho * U * c / visc
-# delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
-# delta_p = 10**(-0.0432*alpha_star + 0.00113*alpha_star**2) * delta_zero
-# delta_s = 10**(0.0311*alpha_star) * delta_zero
-
-delta_p = 0.00192024
-delta_s = 0.00246888
-
-
 M = U / c_0
+Theta_e = 90
+Phi_e = 90
+M_c = 0.8 * M
+Dh = common.Dh_bar(Theta_e, Phi_e, M, M_c)   
+
+
+
+Reynolds = U * c / visc
+delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
+delta_p = 10**(-0.0432*alpha_star + 0.00113*alpha_star**2) * delta_zero
+delta_s = 10**(0.0311*alpha_star) * delta_zero
+
+# delta_p = 0.00192024
+# delta_s = 0.00246888
+
 R_deltaPstar = delta_p * U / visc
 
 
@@ -38,8 +42,10 @@ def TBL_TE(f):
     St_s = TBL.St_s1(f, delta_s, U)
     St_1 = TBL.St_11(M)
     St_2 = TBL.St_21(St_1, alpha_star)
+    print(St_1, St_2)
     St_1mean = TBL.St_1mean1(St_1, St_2)
     St_peak = TBL.St_peak1(St_1, St_2, St_1mean)
+
     b0 = TBL.b01(Reynolds)
     b = TBL.b1(St_s, St_2)
     B_min = TBL.B_min1(b)
@@ -50,7 +56,6 @@ def TBL_TE(f):
     B = TBL.B1(B_min, B_R, B_max)
 
     a0 = TBL.a01(Reynolds)
-
     ap = TBL.a1(St_p, St_peak) 
     A_minp = TBL.A_min1(ap)
     A_maxp = TBL.A_max1(ap)
@@ -59,7 +64,7 @@ def TBL_TE(f):
     A_R = TBL.A_R1(A_mina0, A_maxa0)
     Ap = TBL.A1(A_minp, A_R, A_maxp) 
 
-    aS= TBL.a1(St_s, St_peak) 
+    aS = TBL.a1(St_s, St_peak) 
     A_minS = TBL.A_min1(aS)
     A_maxS = TBL.A_max1(aS)
     AS = TBL.A1(A_minS, A_R, A_maxS) 
@@ -78,11 +83,12 @@ def CalculateSPL(f):
     SPLTBL_p = []
     SPLTBL_alpha = []
     SPLTBL_tot = []
-    for i in f:
-        SPLTBL_s.append(TBL_TE(i)[0])
-        SPLTBL_p.append(TBL_TE(i)[1])
-        SPLTBL_alpha.append(TBL_TE(i)[2])
-        SPLTBL_tot.append(TBL_TE(i)[3])
+    for i in range(len(f)):
+        SPLTBL_s.append(TBL_TE(f[i])[0])
+        SPLTBL_p.append(TBL_TE(f[i])[1])
+        SPLTBL_alpha.append(TBL_TE(f[i])[2])
+        SPLTBL_tot.append(TBL_TE(f[i])[3])
+
     return SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot
 
 
