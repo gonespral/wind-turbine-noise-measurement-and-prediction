@@ -96,7 +96,7 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.xscale('log')
     plt.grid(True, linestyle='--', axis='x', which="both")
     plt.grid(True, linestyle='--', axis='y')
-    plt.title("BPM output")
+    plt.title("BPM Output")
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("SPL (dB)")
     plt.show()

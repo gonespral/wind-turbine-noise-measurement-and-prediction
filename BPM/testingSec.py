@@ -4,35 +4,24 @@ import TBL_TE_Real as TBL
 import pickle as pkl
 
 c = 0.15
-#c = 0.3048
 rho = 1.225
 visc = 1.7529 * 10**-5
 c_0 = 340.46
 L = 0.1
-#L = 0.4572
 r_e = 1.22
 Dh = 1   
 alpha_star = np.rad2deg(np.arctan(2/21))
-#alpha_star = 1.516
-#alpha_star = 0
 U = 56.25
 
 delta_p = 0.00057
 delta_s = 0.00465
-#delta_p = 0.00192
-#delta_s = 0.00246
 
 Reynolds = rho * U * c / visc
-# delta_zero = c * 10**(3.411 - 1.5397*np.log10(Reynolds) + 0.1059*(np.log10(Reynolds))**2)
-# delta_p = 10**(-0.0432*alpha_star + 0.00113*alpha_star**2) * delta_zero
-# delta_s = 10**(0.0311*alpha_star) * delta_zero
-
-
 M = U / c_0
 R_deltaPstar = delta_p * U / visc
 
 
-print(Reynolds, delta_p, delta_s, M, R_deltaPstar)
+#print(Reynolds, delta_p, delta_s, M, R_deltaPstar)
 
 
 def TBL_TE(f):
@@ -111,14 +100,14 @@ def plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot):
     plt.ylabel("SPL (dB)")
     plt.gcf().set_size_inches(10, 10)
     plt.tight_layout()
-    plt.xticks([800, 1000, 1500, 2000, 2500, 3000])
-    plt.savefig("../saves/BPM_spl.png", dpi=300)
+   # plt.xticks([800, 1000, 1500, 2000, 2500, 3000])
+    #plt.savefig("../saves/BPM_spl.png", dpi=300)
     plt.show()
 
-f = np.arange(50, 10000)
+f = np.arange(100, 10000)
 SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot, ameanl = CalculateSPL(f)
 plotone(f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot)
 
 # Save data to pickle file
-with open('saves/BPM_spl.pkl', 'wb') as f_:
-    pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
+# with open('saves/BPM_spl.pkl', 'wb') as f_:
+#     pkl.dump([f, SPLTBL_s, SPLTBL_p, SPLTBL_alpha, SPLTBL_tot], f_)
