@@ -6,19 +6,19 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import pickle as pkl
-from playsound import playsound
 
 with open('misc/windmill.txt', 'r') as f:
     print(f.read())
+
 
 # ----------------------------- Config ----------------------------------
 p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
 f_lower = 500  # Hz
 f_upper = 5000 # Hz
-size_x = 8
-size_y = 4
-x_ticks = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
+size_x = 6.5
+size_y = 5
+x_ticks = [500, 1000, 1500, 2000, 2500, 3000, 4000, 5000]
 
 # Get paths for data files
 bg_paths = []
@@ -31,8 +31,8 @@ for file in os.listdir('data/downloads'):
             wt_paths.append(f'data/downloads/{file}')
 
 # Uncomment the following lines to use only one background and one wind turbine file
-#bg_paths = ['data/downloads/U08_Background.mat']
-#wt_paths = ['data/downloads/U08_Wind%20turbine.mat']
+#bg_paths = ['data/downloads/U12_Background.mat']
+#wt_paths = ['data/downloads/U12_Wind%20turbine.mat']
 
 # ------------------------- Prepare data --------------------------------
 
@@ -84,6 +84,15 @@ with open('BPM/saves/BPM_spl.pkl', 'rb') as f:
     SPLTBL_alpha = bpm_model[3]
     SPLTBL_tot = bpm_model[4]
 
+# Import data from FORTRAN BPM model (data/data.csv)
+df_fortran_bpm_list = []
+for v_inf in v_inf_list:
+    df_fortran_bpm = pd.read_csv(f'data/data{int(v_inf)}.csv', sep=',')
+    # Remove data outside of range
+    df_fortran_bpm = df_fortran_bpm[(df_fortran_bpm['freq'] >= f_lower) & (df_fortran_bpm['freq'] <= f_upper)]
+    df_fortran_bpm_list.append(df_fortran_bpm)
+
+
 # ---------------------------------- FFT ----------------------------------
 
 df_bg_fft_list = []
@@ -129,7 +138,7 @@ fig, ax = plt.subplots()
 fig.set_size_inches(size_x, size_y)
 for df_bg_fft, df_wt_fft, v_inf in zip(df_bg_fft_list, df_wt_fft_list, v_inf_list):
     sns.lineplot(data=df_wt_fft, x='freq', y=0, label=f'v_inf = {v_inf} m/s', ax=ax)
-#ax.set_title('FFT')
+ax.set_title('FFT')
 ax.grid(True)
 ax.set_ylabel('Pressure [Pa]')
 plt.xscale('log')
@@ -255,7 +264,7 @@ fig, ax = plt.subplots()
 fig.set_size_inches(size_x, size_y)
 for df_bg_welch_psd_db, df_wt_welch_psd_db, v_inf in zip(df_bg_welch_psd_db_list, df_wt_welch_psd_db_list, v_inf_list):
     sns.lineplot(data=df_wt_welch_psd_db, x='freq', y='psd', label=f'v_inf = {v_inf} m/s', ax=ax)
-#ax.set_title('PSD')
+ax.set_title('PSD')
 ax.grid(True)
 ax.set_ylabel('PSD [dB/Hz]')
 ax.set_xlabel('Frequency [Hz]')
@@ -270,7 +279,7 @@ fig, ax = plt.subplots()
 fig.set_size_inches(size_x, size_y)
 for df_wt_bg_welch_psd_db, v_inf in zip(df_wt_bg_welch_psd_db_list, v_inf_list):
     sns.lineplot(data=df_wt_bg_welch_psd_db, x='freq', y='psd', label=f'v_inf = {v_inf} m/s', ax=ax)
-#ax.set_title('PSD (wt - bg)')
+ax.set_title('PSD (wt - bg)')
 ax.grid(True)
 ax.set_ylabel('PSD [dB/Hz]')
 ax.set_xlabel('Frequency [Hz]')
@@ -332,10 +341,10 @@ for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_list, df_wt_spl_list, v_inf_lis
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax)
 bpm_df = pd.DataFrame({'freq': bpm_f, 'spl': SPLTBL_tot})
 bpm_df = bpm_df[(bpm_df['freq'] >= f_lower) & (bpm_df['freq'] <= f_upper)]
-#sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = x m/s', ax=ax)
-#ax.set_title('SPL')
+sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = x m/s', ax=ax)
+ax.set_title('SPL')
 ax.grid(True)
-ax.set_ylabel('L_p [dB]')
+ax.set_ylabel('SPL [dB]')
 ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.xticks(x_ticks, x_ticks)
@@ -348,10 +357,10 @@ fig, ax = plt.subplots()
 fig.set_size_inches(size_x, size_y)
 for df_wt_bg_spl, v_inf in zip(df_wt_bg_spl_list, v_inf_list):
     sns.lineplot(data=df_wt_bg_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s')
-#sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = {v_inf} m/s')
-#ax.set_title('SPL (wt - bg)')
+sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = {v_inf} m/s')
+ax.set_title('SPL (wt - bg)')
 ax.grid(True)
-ax.set_ylabel('L_p [dB]')
+ax.set_ylabel('SPL [dB]')
 ax.set_xlabel('Frequency [Hz]')
 plt.xscale('log')
 plt.xticks(x_ticks, x_ticks)
@@ -363,6 +372,7 @@ plt.show()
 
 df_bg_spl_1_3_list = []
 df_wt_spl_1_3_list = []
+df_wt_bg_spl_1_3_list = []
 
 # Evaluate SPL in the frequency domain in 3rd octave bands
 freq_centre = 10 ** (0.1 * np.arange(12, 43))
@@ -370,45 +380,62 @@ freq_d = 10 ** 0.05
 f_upper_1_3 = freq_centre * freq_d
 f_lower_1_3 = freq_centre / freq_d
 
-for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, v_inf_list):
+for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, df_wt_bg_welch_psd_list, v_inf_list):
 
     print(f'[*] Calculating SPL_1/3 for v_inf = {v_inf} m/s...')
 
     df_bg_spl = pd.DataFrame(columns=['freq', 'spl'])
     df_wt_spl = pd.DataFrame(columns=['freq', 'spl'])
+    df_wt_bg_spl = pd.DataFrame(columns=['freq', 'spl'])
 
     # Clear values in dataframe
     df_bg_spl = df_bg_spl.iloc[0:0]
     df_wt_spl = df_wt_spl.iloc[0:0]
+    df_wt_bg_spl = df_wt_bg_spl.iloc[0:0]
 
     for l, c, u in zip(f_lower_1_3, freq_centre, f_upper_1_3):
         # Sum PSD in band
         sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= l) & (df_bg_welch_psd['freq'] < u)].sum()
         sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= l) & (df_wt_welch_psd['freq'] < u)].sum()
+        sum_wt_bg = df_wt_bg_welch_psd[(df_wt_bg_welch_psd['freq'] >= l) & (df_wt_bg_welch_psd['freq'] < u)].sum()
 
         # Add row to dataframe
         df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * (u - l)}, ignore_index=True)
         df_wt_spl = df_wt_spl.append({'freq': c, 'spl': sum_wt[0] * (u - l)}, ignore_index=True)
+        df_wt_bg_spl = df_wt_bg_spl.append({'freq': c, 'spl': sum_wt_bg[0] * (u - l)}, ignore_index=True)
 
     # Convert spl column to dB
     df_bg_spl['spl'] = df_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
     df_wt_spl['spl'] = df_wt_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
+    df_wt_bg_spl['spl'] = df_wt_bg_spl['spl'].apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
 
     # Remove frequencies outside of range
     df_bg_spl = df_bg_spl[(df_bg_spl['freq'] >= f_lower) & (df_bg_spl['freq'] <= f_upper)]
     df_wt_spl = df_wt_spl[(df_wt_spl['freq'] >= f_lower) & (df_wt_spl['freq'] <= f_upper)]
-
+    df_wt_bg_spl = df_wt_bg_spl[(df_wt_bg_spl['freq'] >= f_lower) & (df_wt_bg_spl['freq'] <= f_upper)]
     # Append to lists
     df_bg_spl_1_3_list.append(df_bg_spl)
     df_wt_spl_1_3_list.append(df_wt_spl)
+    df_wt_bg_spl_1_3_list.append(df_wt_bg_spl)
 
 # Plot results
 print('[*] Plotting results...')
 fig, ax = plt.subplots()
 fig.set_size_inches(size_x, size_y)
-for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_1_3_list, df_wt_spl_1_3_list, v_inf_list):
-    sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax)
-#ax.set_title('SPL 1/3')
+colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
+for df_bg_spl, df_wt_spl, df_wt_bg_spl, df_fortran_bpm, colors, v_inf in zip(df_bg_spl_1_3_list, df_wt_spl_1_3_list, df_wt_bg_spl_1_3_list, df_fortran_bpm_list, colors, v_inf_list):
+    sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax, dashes=False, markers=True)
+    sns.lineplot(data=df_fortran_bpm, x='freq', y='spl', label=f'v_inf = {v_inf} m/s (BPM)', ax=ax, markers=True)
+    ax.lines[-1].set_linestyle('--')
+    ax.lines[-1].set_color(colors)
+    ax.lines[-2].set_color(colors)
+
+# Update legend for each line (all v_inf)
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles=handles[0:len(v_inf_list)], labels=labels[0:len(v_inf_list)])
+
+#sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = {v_inf} m/s')
+ax.set_title('SPL 1/3')
 ax.grid(True)
 ax.set_ylabel('Pressure [dB]')
 ax.set_xlabel('Frequency [Hz]')
@@ -417,6 +444,23 @@ plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig('saves/spl_1_3.png', dpi=300)
 plt.show()
+
+# Plot error (wt - bpm)
+fig, ax = plt.subplots()
+fig.set_size_inches(size_x, size_y)
+for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_1_3_list, df_wt_spl_1_3_list, v_inf_list):
+    sns.lineplot(data=df_wt_spl - bpm_df, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax)
+ax.set_title('SPL 1/3 (wt - bpm)')
+ax.grid(True)
+ax.set_ylabel('Pressure [dB]')
+ax.set_xlabel('Frequency [Hz]')
+plt.xscale('log')
+plt.xticks(x_ticks, x_ticks)
+plt.tight_layout()
+plt.savefig('saves/spl_1_3_error.png', dpi=300)
+plt.show()
+
+
 
 
 # ---------------------------------- OSPL ----------------------------------
@@ -458,12 +502,11 @@ x = np.linspace(min(v_inf_list), max(v_inf_list), 100)
 y = trend_ideal_fn[0] * np.log10(x) + trend_ideal_fn[1]
 sns.lineplot(x=x, y=y, ax=ax, color='blue', label=f'{trend_ideal_fn[0]:.2f}*log(x) + {trend_ideal_fn[1]:.2f}')
 
-#ax.set_title(f'OSPL ({800} - {3000} Hz)')
+ax.set_title(f'OSPL ({800} - {3000} Hz)')
 ax.grid(True)
 ax.set_ylabel('OSPL [dB]')
 ax.set_xlabel('v_inf [m/s]')
 plt.savefig(f'saves/OSPL_800_3000.png', dpi=300)
 plt.show()
 
-playsound('./misc/bell.wav')
 print('[*] Done!')
