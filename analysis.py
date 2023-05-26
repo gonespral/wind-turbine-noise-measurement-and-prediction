@@ -16,8 +16,9 @@ p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
 f_lower = 500  # Hz
 f_upper = 5000 # Hz
-size_x = 6.5
-size_y = 5
+scaling_factor = 1
+size_x = 6.5 * scaling_factor
+size_y = 5 * scaling_factor
 x_ticks = [500, 1000, 1500, 2000, 2500, 3000, 4000, 5000]
 
 # Get paths for data files
@@ -29,6 +30,8 @@ for file in os.listdir('data/downloads'):
             bg_paths.append(f'data/downloads/{file}')
         elif 'Wind' in file:
             wt_paths.append(f'data/downloads/{file}')
+
+run_FFT = False
 
 # Uncomment the following lines to use only one background and one wind turbine file
 #bg_paths = ['data/downloads/U12_Background.mat']
@@ -76,21 +79,22 @@ for bg_data_path, wt_data_path in zip(bg_paths, wt_paths):
     v_inf_list.append(float(v_inf))
 
 # Load BPM model data form pickle file
-with open('BPM/saves/BPM_spl.pkl', 'rb') as f:
-    bpm_model = pkl.load(f)
-    bpm_f = bpm_model[0]
-    SPLTBL_s = bpm_model[1]
-    SPLTBL_p = bpm_model[2]
-    SPLTBL_alpha = bpm_model[3]
-    SPLTBL_tot = bpm_model[4]
+# with open('BPM/saves/BPM_spl.pkl', 'rb') as f:
+#     bpm_model = pkl.load(f)
+#     bpm_f = bpm_model[0]
+#     SPLTBL_s = bpm_model[1]
+#     SPLTBL_p = bpm_model[2]
+#     SPLTBL_alpha = bpm_model[3]
+#     SPLTBL_tot = bpm_model[4]
 
-# Import data from FORTRAN BPM model (data/data.csv)
-df_fortran_bpm_list = []
+# Import data from BPM model (data/BPM/data.csv)
+df_bpm_list = []
 for v_inf in v_inf_list:
-    df_fortran_bpm = pd.read_csv(f'data/data{int(v_inf)}.csv', sep=',')
+    print(f'[*] Importing BPM data from BPM_BYU/data/data{int(v_inf)}.csv...')
+    df_fortran_bpm = pd.read_csv(f'BPM_BYU/data/data{int(v_inf)}.csv', sep=',')
     # Remove data outside of range
     df_fortran_bpm = df_fortran_bpm[(df_fortran_bpm['freq'] >= f_lower) & (df_fortran_bpm['freq'] <= f_upper)]
-    df_fortran_bpm_list.append(df_fortran_bpm)
+    df_bpm_list.append(df_fortran_bpm)
 
 
 # ---------------------------------- FFT ----------------------------------
@@ -98,103 +102,55 @@ for v_inf in v_inf_list:
 df_bg_fft_list = []
 df_wt_fft_list = []
 
-for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
-    print(f'[*] Calculating FFT for v_inf = {v_inf} m/s...')
+if run_FFT:
+    for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
+        print(f'[*] Calculating FFT for v_inf = {v_inf} m/s...')
 
-    # Calculate frequency components
-    df_bg_fft = pd.DataFrame(np.fft.fft(df_bg))
-    df_wt_fft = pd.DataFrame(np.fft.fft(df_wt))
+        # Calculate frequency components
+        df_bg_fft = pd.DataFrame(np.fft.fft(df_bg))
+        df_wt_fft = pd.DataFrame(np.fft.fft(df_wt))
 
-    # Get absolute value of components and normalize
-    df_bg_fft = df_bg_fft.applymap(lambda x: np.abs(x) / len(df_bg))
-    df_wt_fft = df_wt_fft.applymap(lambda x: np.abs(x) / len(df_wt))
+        # Get absolute value of components and normalize
+        df_bg_fft = df_bg_fft.applymap(lambda x: np.abs(x) / len(df_bg))
+        df_wt_fft = df_wt_fft.applymap(lambda x: np.abs(x) / len(df_wt))
 
-    # Get frequency axis
-    df_bg_fft['freq'] = np.fft.fftfreq(n=len(df_bg_fft), d=1/sample_rate)
-    df_wt_fft['freq'] = np.fft.fftfreq(n=len(df_wt_fft), d=1/sample_rate)
+        # Get frequency axis
+        df_bg_fft['freq'] = np.fft.fftfreq(n=len(df_bg_fft), d=1/sample_rate)
+        df_wt_fft['freq'] = np.fft.fftfreq(n=len(df_wt_fft), d=1/sample_rate)
 
-    # Keep only positive frequencies
-    df_bg_fft = df_bg_fft[df_bg_fft['freq'] >= 0]
-    df_wt_fft = df_wt_fft[df_wt_fft['freq'] >= 0]
+        # Keep only positive frequencies
+        df_bg_fft = df_bg_fft[df_bg_fft['freq'] >= 0]
+        df_wt_fft = df_wt_fft[df_wt_fft['freq'] >= 0]
 
-    # Remove frequencies outside of range
-    df_bg_fft = df_bg_fft[(df_bg_fft['freq'] >= f_lower) & (df_bg_fft['freq'] <= f_upper)]
-    df_wt_fft = df_wt_fft[(df_wt_fft['freq'] >= f_lower) & (df_wt_fft['freq'] <= f_upper)]
+        # Remove frequencies outside of range
+        df_bg_fft = df_bg_fft[(df_bg_fft['freq'] >= f_lower) & (df_bg_fft['freq'] <= f_upper)]
+        df_wt_fft = df_wt_fft[(df_wt_fft['freq'] >= f_lower) & (df_wt_fft['freq'] <= f_upper)]
 
-    # Reset index
-    df_bg_fft = df_bg_fft.reset_index(drop=True)
-    df_wt_fft = df_wt_fft.reset_index(drop=True)
+        # Reset index
+        df_bg_fft = df_bg_fft.reset_index(drop=True)
+        df_wt_fft = df_wt_fft.reset_index(drop=True)
 
-    # Append to lists
-    df_bg_fft_list.append(df_bg_fft)
-    df_wt_fft_list.append(df_wt_fft)
+        # Append to lists
+        df_bg_fft_list.append(df_bg_fft)
+        df_wt_fft_list.append(df_wt_fft)
 
-freq_res_fft = df_bg_fft_list[0]['freq'][1] - df_bg_fft_list[0]['freq'][0]
-print(f'[*] Frequency resolution: {freq_res_fft} Hz')
+    freq_res_fft = df_bg_fft_list[0]['freq'][1] - df_bg_fft_list[0]['freq'][0]
+    print(f'[*] Frequency resolution: {freq_res_fft} Hz')
 
-# Plot all FFT results in df_bg_fft_list and df_wt_fft_list
-print('[*] Plotting results...')
-fig, ax = plt.subplots()
-fig.set_size_inches(size_x, size_y)
-for df_bg_fft, df_wt_fft, v_inf in zip(df_bg_fft_list, df_wt_fft_list, v_inf_list):
-    sns.lineplot(data=df_wt_fft, x='freq', y=0, label=f'v_inf = {v_inf} m/s', ax=ax)
-ax.set_title('FFT')
-ax.grid(True)
-ax.set_ylabel('Pressure [Pa]')
-plt.xscale('log')
-plt.xticks(x_ticks, x_ticks)
-plt.tight_layout()
-plt.savefig(f'saves/fft.png', dpi=300)
-plt.show()
-
-
-# ---------------------------------- PSD ----------------------------------
-
-# df_bg_psd_db_list = []
-# df_wt_psd_db_list = []
-#
-# for df_bg_fft, df_wt_fft, v_inf in zip(df_bg_fft_list, df_wt_fft_list, v_inf_list):
-#     # Evaluate PSD in the frequency domain
-#     print(f'[*] Calculating PSD for v_inf = {v_inf} m/s...')
-#
-#     df_bg_psd = df_bg_fft[0] ** 2
-#     df_wt_psd = df_wt_fft[0] ** 2
-#
-#     # Double the amplitudes to account for one-sided spectrum, and normalize
-#     df_bg_psd = df_bg_psd.apply(lambda x:  2 * x / (sample_rate * hann_scaling_factor))
-#     df_wt_psd = df_wt_psd.apply(lambda x: 2 * x / (sample_rate * hann_scaling_factor))
-#
-#     # Convert to dB
-#     df_bg_psd_db = df_bg_psd.apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
-#     df_wt_psd_db = df_wt_psd.apply(lambda x: 10 * np.log10(x / (p_ref ** 2)))
-#
-#     # Assemble into dataframe
-#     df_bg_psd_db = pd.DataFrame(df_bg_psd_db)
-#     df_wt_psd_db = pd.DataFrame(df_wt_psd_db)
-#
-#     # Get frequency axis
-#     df_bg_psd_db['freq'] = df_bg_fft['freq']
-#     df_wt_psd_db['freq'] = df_wt_fft['freq']
-#
-#     # Append to lists
-#     df_bg_psd_db_list.append(df_bg_psd_db)
-#     df_wt_psd_db_list.append(df_wt_psd_db)
-#
-# # Plot results
-# print('[*] Plotting results...')
-# fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
-# fig.set_size_inches(10, 10)
-# for df_bg_psd_db, df_wt_psd_db, v_inf in zip(df_bg_psd_db_list, df_wt_psd_db_list, v_inf_list):
-#     sns.lineplot(data=df_bg_psd_db, x='freq', y=0, label=f'Background (v_inf = {v_inf} m/s)', ax=ax1)
-#     sns.lineplot(data=df_wt_psd_db, x='freq', y=0, label=f'Wind turbine (v_inf = {v_inf} m/s)', ax=ax2)
-# ax1.set_title('PSD')
-# ax1.grid(True)
-# ax1.set_ylabel('PSD [dB/Hz]')
-# ax2.grid(True)
-# ax2.set_ylabel('PSD [dB/Hz]')
-# ax2.set_xlabel('Frequency [Hz]')
-# plt.xscale('log')
-# plt.show()
+    # Plot all FFT results in df_bg_fft_list and df_wt_fft_list
+    print('[*] Plotting results...')
+    fig, ax = plt.subplots()
+    fig.set_size_inches(size_x, size_y)
+    for df_bg_fft, df_wt_fft, v_inf in zip(df_bg_fft_list, df_wt_fft_list, v_inf_list):
+        sns.lineplot(data=df_wt_fft, x='freq', y=0, label=f'v_inf = {v_inf} m/s', ax=ax)
+    ax.set_title('FFT')
+    ax.grid(True)
+    ax.set_ylabel('Pressure [Pa]')
+    plt.xscale('log')
+    plt.xticks(x_ticks, x_ticks)
+    plt.tight_layout()
+    plt.savefig(f'saves/fft.png', dpi=300)
+    plt.show()
 
 # --------------------------- Welch PSD -----------------------------------
 
@@ -423,7 +379,7 @@ print('[*] Plotting results...')
 fig, ax = plt.subplots()
 fig.set_size_inches(size_x, size_y)
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple']
-for df_bg_spl, df_wt_spl, df_wt_bg_spl, df_fortran_bpm, colors, v_inf in zip(df_bg_spl_1_3_list, df_wt_spl_1_3_list, df_wt_bg_spl_1_3_list, df_fortran_bpm_list, colors, v_inf_list):
+for df_bg_spl, df_wt_spl, df_wt_bg_spl, df_fortran_bpm, colors, v_inf in zip(df_bg_spl_1_3_list, df_wt_spl_1_3_list, df_wt_bg_spl_1_3_list, df_bpm_list, colors, v_inf_list):
     sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax, dashes=False, markers=True)
     sns.lineplot(data=df_fortran_bpm, x='freq', y='spl', label=f'v_inf = {v_inf} m/s (BPM)', ax=ax, markers=True)
     ax.lines[-1].set_linestyle('--')
@@ -459,8 +415,6 @@ plt.xticks(x_ticks, x_ticks)
 plt.tight_layout()
 plt.savefig('saves/spl_1_3_error.png', dpi=300)
 plt.show()
-
-
 
 
 # ---------------------------------- OSPL ----------------------------------

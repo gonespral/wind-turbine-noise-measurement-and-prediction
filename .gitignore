@@ -2,3 +2,6 @@
 /data/downloads/
 BPM/__pycache__/common.cpython-37.pyc
 BPM/__pycache__/TBL_TE_Real.cpython-37.pyc
+/BPM_BYU/build/
+/BPM_BYU/dist/
+/BPM_BYU/BPM.egg-info/
