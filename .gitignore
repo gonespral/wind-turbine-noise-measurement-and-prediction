@@ -5,3 +5,6 @@ BPM/__pycache__/TBL_TE_Real.cpython-37.pyc
 /BPM_BYU/build/
 /BPM_BYU/dist/
 /BPM_BYU/BPM.egg-info/
+/BPM_BYU/acoustic_model/bpmacoustic.egg-info/
+/BPM_BYU/acoustic_model/bpmvawtacoustic.egg-info/
+/.idea/csv-editor.xml

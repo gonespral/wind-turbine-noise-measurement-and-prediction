@@ -1012,6 +1012,9 @@ subroutine OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR,SPLoa,
       SPLf(j) = 10.0_dp*log10(10.0_dp**(TE(j)/10.0_dp)+10.0_dp**(TV(j)/&
       10.0_dp)+10.0_dp**(BLVS(j)/10.0_dp)+10.0_dp**(BVS(j)/10.0_dp))
 
+      ! Only TBLTE
+      ! SPLf(j) = TE(j)
+
     end do
 
     ! Correcting with A-weighting
