@@ -1,7 +1,7 @@
 import numpy as np
 
 
-# we need :  ( M, U, L, Dh, re, f, alphastar,Rc, R_deltap, St_peak, delta_s, delta_p)
+# we need :  ( M, U, L, Dh, re, f, alphastar,Rc, R_deltap, delta_s, delta_p)
 
 
 
@@ -69,7 +69,7 @@ def St_21(St_1, alphastar):
     if alphastar < 1.33:
         St_2 = St_1 * 1
     elif 1.33 <= alphastar <= 12.5:
-        St_2 = St_1 * (10**(0.0054 * (alphastar - 1.33)**2 ))
+        St_2 = St_1 * (10**(0.0054 * ((alphastar - 1.33)**2) ))
     elif alphastar > 12.5:
         St_2 = St_1 * 4.72
     return St_2
@@ -124,7 +124,7 @@ def B_R1(B_min, B_max):
     return B_R
 
 def B1(B_min, B_R, B_max):
-    B = B_min + B_R * (B_max - B_min)
+    B = B_min + (B_R * (B_max - B_min))
     return B
 
 
@@ -148,7 +148,7 @@ def a1(St, St_peak):
 
 def A_min1(a):
     if a < 0.204:
-        A_min = (67.552 - 886.788 * a**2)**0.5 - 8.219
+        A_min = (67.552 - 886.788 * (a**2))**0.5 - 8.219
     elif 0.204 <= a <= 0.244:
         A_min = -32.665 * a + 3.981
     elif a > 0.244:
@@ -169,7 +169,7 @@ def A_R1(A_min, A_max):
     return A_R 
 
 def A1(A_min, A_R, A_max):
-    A = A_min + A_R * (A_max - A_min)
+    A = A_min + (A_R * (A_max - A_min))
     return A
 
 
@@ -179,19 +179,19 @@ def A1(A_min, A_R, A_max):
 
 
 def SPL_alpha1(delta_s, M, L, Dh, re, B, K2):
-   SPL_alpha = 10 * np.log10( (delta_s * M**5 * L * Dh) / re**2) + B  + K2 
+   SPL_alpha = 10 * np.log10( (delta_s * M**5 * L * Dh) / re**2) + B + K2 
    return SPL_alpha
 
 def SPL_s1(delta_s, M, L, Dh, re, A, K1):
-    SPL_s = 10 * np.log10( (delta_s * M**5 * L * Dh) / re**2) + A  + (K1 - 3)
+    SPL_s = 10 * np.log10( (delta_s * M**5 * L * Dh) / re**2) + A + (K1 - 3)
     return SPL_s
 
 def SPL_p1(delta_p, M, L, Dh, re, A, K1, deltaK1):
-    SPL_p = 10 * np.log10( (delta_p * M**5 * L * Dh) / re**2) + A  + (K1 - 3) + deltaK1
+    SPL_p = 10 * np.log10( (delta_p * M**5 * L * Dh) / re**2) + A + (K1 - 3) + deltaK1
     return SPL_p
 
 def SPL_tot1(SPL_alpha, SPL_s, SPL_p):
-   SPL_tot = 10 * np.log10( 10**(SPL_alpha/10) + 10**(SPL_s/10) + 10**(SPL_p/10))
+   SPL_tot = 10 * np.log10(10**(SPL_alpha/10) + 10**(SPL_s/10) + 10**(SPL_p/10))
    return SPL_tot
 
 

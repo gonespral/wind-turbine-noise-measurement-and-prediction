@@ -48,7 +48,7 @@ def TBL_TE(f):
     B = TBL.B1(B_min, B_R, B_max)
     a0 = TBL.a01(Reynolds)
 
-    ap = TBL.a1(St_p, 0.05) 
+    ap = TBL.a1(St_p, St_peak) 
     A_minp = TBL.A_min1(ap)
     A_maxp = TBL.A_max1(ap)
     A_mina0 = TBL.A_min1(a0)
@@ -56,7 +56,7 @@ def TBL_TE(f):
     A_Rp = TBL.A_R1(A_mina0, A_maxa0)
     Ap = TBL.A1(A_minp, A_Rp, A_maxp) 
 
-    aS= TBL.a1(St_s, 0.05) 
+    aS= TBL.a1(St_s, St_peak) 
     A_minS = TBL.A_min1(aS)
     A_maxS = TBL.A_max1(aS)
     A_RS = TBL.A_R1(A_mina0, A_maxa0)
