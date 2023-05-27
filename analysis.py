@@ -96,7 +96,7 @@ for v_inf in v_inf_list:
 
 # Prepare colors for plots
 colors = []
-for i in range(len(v_inf_list)):
+for i in range(len(v_inf_list) + 5):
     colors.append(plt.cm.get_cmap(color_scheme, len(v_inf_list))(i))
 
 
@@ -209,9 +209,10 @@ for df_wt_welch_psd_db, v_inf, color in zip(df_wt_welch_psd_db_list, v_inf_list,
     ax.plot(df_wt_welch_psd_db['freq'], df_wt_welch_psd_db['psd'], color=color, label=f'{v_inf} m/s')
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('PSD [dB\Hz]')
-ax.set_title('PSD of wind turbine noise')
+ax.set_title('PSD')
 ax.legend()
 ax.grid(True)
+plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/PSD.png')
 plt.show()
 
@@ -235,13 +236,10 @@ for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_wel
     df_wt_bg_spl = pd.DataFrame(columns=['freq', 'spl'])
 
     for l, c, u in zip(freq_bands[:-1], freq_bands[1:], freq_bands[2:]):
-        print("l", l)
-        print("c", c)
-        print("u", u)
         # Sum PSD in band
-        sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= l) & (df_bg_welch_psd['freq'] < u)].sum()
-        sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= l) & (df_wt_welch_psd['freq'] < u)].sum()
-        sum_wt_bg = df_wt_bg_welch_psd[(df_wt_bg_welch_psd['freq'] >= l) & (df_wt_bg_welch_psd['freq'] < u)].sum()
+        sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= l) & (df_bg_welch_psd['freq'] <= u)].sum()
+        sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= l) & (df_wt_welch_psd['freq'] <= u)].sum()
+        sum_wt_bg = df_wt_bg_welch_psd[(df_wt_bg_welch_psd['freq'] >= l) & (df_wt_bg_welch_psd['freq'] <= u)].sum()
 
         # Add row to dataframe
         df_bg_spl = df_bg_spl.append({'freq': c, 'spl': sum_bg[0] * freq_step}, ignore_index=True)
@@ -266,12 +264,13 @@ for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_wel
 # Plot results for wind turbine per v_inf
 fig, ax = plt.subplots(figsize=(size_x, size_y))
 for df_wt_spl, v_inf, color in zip(df_wt_spl_list, v_inf_list, colors):
-    ax.plot(df_wt_spl['freq'], df_wt_spl['spl'], color=color, label=f'{v_inf} m/s')
+    sns.lineplot(x='freq', y='spl', data=df_wt_spl, color=color, label=f'{v_inf} m/s')
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('SPL [dB]')
-ax.set_title('SPL of wind turbine noise')
+ax.set_title('SPL')
 ax.legend()
 ax.grid(True)
+plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/SPL.png')
 plt.show()
 
@@ -335,9 +334,10 @@ for df_wt_spl_1_3, df_bpm, v_inf, color in zip(df_wt_spl_1_3_list, df_bpm_list, 
 ax.set_xscale('log')
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('SPL [dB]')
-ax.set_title('SPL of wind turbine noise')
+ax.set_title('SPL (1/3)')
 ax.legend()
 ax.grid(True)
+plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/SPL_1_3.png')
 plt.show()
 

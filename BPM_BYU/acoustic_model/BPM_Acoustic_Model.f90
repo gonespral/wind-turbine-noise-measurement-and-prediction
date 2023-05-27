@@ -1009,11 +1009,11 @@ subroutine OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR,SPLoa,
       BVS(j) = 10.0_dp*log10(sum(10.0_dp**(BVS_t/10.0_dp)))
 
       ! Combining noise sources into overall SPL
-      SPLf(j) = 10.0_dp*log10(10.0_dp**(TE(j)/10.0_dp)+10.0_dp**(TV(j)/&
-      10.0_dp)+10.0_dp**(BLVS(j)/10.0_dp)+10.0_dp**(BVS(j)/10.0_dp))
+      !SPLf(j) = 10.0_dp*log10(10.0_dp**(TE(j)/10.0_dp)+10.0_dp**(TV(j)/&
+      !10.0_dp)+10.0_dp**(BLVS(j)/10.0_dp)+10.0_dp**(BVS(j)/10.0_dp))
 
       ! Only TBLTE
-      ! SPLf(j) = TE(j)
+      SPLf(j) = TE(j)
 
     end do
 
