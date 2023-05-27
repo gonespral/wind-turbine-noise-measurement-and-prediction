@@ -10,7 +10,6 @@ import pickle as pkl
 with open('misc/windmill.txt', 'r') as f:
     print(f.read())
 
-
 # ----------------------------- Config ----------------------------------
 p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
@@ -95,14 +94,20 @@ for v_inf in v_inf_list:
     df_bpm = df_bpm[(df_bpm['freq'] >= f_lower) & (df_bpm['freq'] <= f_upper)]
     df_bpm_list.append(df_bpm)
 
+# Prepare colors for plots
+colors = []
+for i in range(len(v_inf_list)):
+    colors.append(plt.cm.get_cmap(color_scheme, len(v_inf_list))(i))
+
 
 # ---------------------------------- FFT ----------------------------------
 
 df_bg_fft_list = []
 df_wt_fft_list = []
 
+print('[*] Calculating FFT...')
 for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
-    print(f'[*] Calculating FFT for v_inf = {v_inf} m/s...')
+    print(f'    v_inf = {v_inf} m/s...')
 
     # Calculate frequency components
     df_bg_fft = pd.DataFrame(np.fft.fft(df_bg))
@@ -133,22 +138,7 @@ for df_bg, df_wt, v_inf in zip(df_bg_list, df_wt_list, v_inf_list):
     df_wt_fft_list.append(df_wt_fft)
 
 freq_res_fft = df_bg_fft_list[0]['freq'][1] - df_bg_fft_list[0]['freq'][0]
-print(f'[*] Frequency resolution: {freq_res_fft} Hz')
-
-# Plot all FFT results in df_bg_fft_list and df_wt_fft_list
-print('[*] Plotting results...')
-fig, ax = plt.subplots()
-fig.set_size_inches(size_x, size_y)
-for df_bg_fft, df_wt_fft, v_inf in zip(df_bg_fft_list, df_wt_fft_list, v_inf_list):
-    sns.lineplot(data=df_wt_fft, x='freq', y=0, label=f'v_inf = {v_inf} m/s', ax=ax)
-ax.set_title('FFT')
-ax.grid(True)
-ax.set_ylabel('Pressure [Pa]')
-plt.xscale('log')
-plt.xticks(x_ticks, x_ticks)
-plt.tight_layout()
-plt.savefig(f'saves/fft.png', dpi=300)
-plt.show()
+print(f'    Frequency resolution: {freq_res_fft} Hz')
 
 # --------------------------- Welch PSD -----------------------------------
 
@@ -159,9 +149,10 @@ df_bg_welch_psd_db_list = []
 df_wt_welch_psd_db_list = []
 df_wt_bg_welch_psd_db_list = []
 
+print('[*] Calculating PSD (Welch)...')
 for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_wt_no_hanning_list, v_inf_list):
     # Evaluate PSD using Welch's method
-    print(f'[*] Calculating Welch PSD for v_inf = {v_inf} m/s...')
+    print(f'    v_inf = {v_inf} m/s...')
 
     # Get first column of the dataframe (pressure) - this applies a hanning window
     f, Pxx_den = signal.welch(df_bg_no_hanning,
@@ -210,38 +201,20 @@ for df_bg_no_hanning, df_wt_no_hanning, v_inf in zip(df_bg_no_hanning_list, df_w
     df_wt_bg_welch_psd_db_list.append(df_wt_bg_welch_psd_db)
 
 freq_res_psd = df_bg_welch_psd_db['freq'][1] - df_bg_welch_psd_db['freq'][0]
-print(f'[*] Frequency resolution: {freq_res_psd} Hz')
+print(f'    Frequency resolution: {freq_res_psd} Hz')
 
-# Plot results
-print('[*] Plotting results...')
-fig, ax = plt.subplots()
-fig.set_size_inches(size_x, size_y)
-for df_bg_welch_psd_db, df_wt_welch_psd_db, v_inf in zip(df_bg_welch_psd_db_list, df_wt_welch_psd_db_list, v_inf_list):
-    sns.lineplot(data=df_wt_welch_psd_db, x='freq', y='psd', label=f'v_inf = {v_inf} m/s', ax=ax)
-ax.set_title('PSD')
-ax.grid(True)
-ax.set_ylabel('PSD [dB/Hz]')
+# Plot results for wind turbine per v_inf
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for df_wt_welch_psd_db, v_inf, color in zip(df_wt_welch_psd_db_list, v_inf_list, colors):
+    ax.plot(df_wt_welch_psd_db['freq'], df_wt_welch_psd_db['psd'], color=color, label=f'{v_inf} m/s')
 ax.set_xlabel('Frequency [Hz]')
-plt.xscale('log')
-plt.xticks(x_ticks, x_ticks)
-plt.tight_layout()
-plt.savefig('saves/welch_psd.png', dpi=300)
+ax.set_ylabel('PSD [dB\Hz]')
+ax.set_title('PSD of wind turbine noise')
+ax.legend()
+ax.grid(True)
+plt.savefig('saves/PSD.png')
 plt.show()
 
-# Plot denoised results (dB)
-fig, ax = plt.subplots()
-fig.set_size_inches(size_x, size_y)
-for df_wt_bg_welch_psd_db, v_inf in zip(df_wt_bg_welch_psd_db_list, v_inf_list):
-    sns.lineplot(data=df_wt_bg_welch_psd_db, x='freq', y='psd', label=f'v_inf = {v_inf} m/s', ax=ax)
-ax.set_title('PSD (wt - bg)')
-ax.grid(True)
-ax.set_ylabel('PSD [dB/Hz]')
-ax.set_xlabel('Frequency [Hz]')
-plt.xscale('log')
-plt.xticks(x_ticks, x_ticks)
-plt.tight_layout()
-plt.savefig('saves/welch_psd_denoised.png', dpi=300)
-plt.show()
 
 # ---------------------------------- SPL ----------------------------------
 
@@ -252,16 +225,19 @@ df_wt_bg_spl_list = []
 freq_step = 10 # Hz
 freq_bands = np.arange(0, max(df_bg_fft['freq']), freq_step)
 
+print('[*] Calculating SPL...')
 for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, df_wt_bg_welch_psd_list, v_inf_list):
-
-    # Evaluate SPL in the frequency domain over freq_step Hz bands
-    print(f'[*] Calculating SPL for v_inf = {v_inf} m/s with freq_step = {freq_step} Hz...')
+    # Calculate SPL
+    print(f'    v_inf = {v_inf} m/s with freq_step = {freq_step} Hz...')
 
     df_bg_spl = pd.DataFrame(columns=['freq', 'spl'])
     df_wt_spl = pd.DataFrame(columns=['freq', 'spl'])
     df_wt_bg_spl = pd.DataFrame(columns=['freq', 'spl'])
 
     for l, c, u in zip(freq_bands[:-1], freq_bands[1:], freq_bands[2:]):
+        print("l", l)
+        print("c", c)
+        print("u", u)
         # Sum PSD in band
         sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= l) & (df_bg_welch_psd['freq'] < u)].sum()
         sum_wt = df_wt_welch_psd[(df_wt_welch_psd['freq'] >= l) & (df_wt_welch_psd['freq'] < u)].sum()
@@ -287,40 +263,18 @@ for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_wel
     df_wt_spl_list.append(df_wt_spl)
     df_wt_bg_spl_list.append(df_wt_bg_spl)
 
-# Plot results
-print('[*] Plotting results...')
-fig, ax = plt.subplots()
-fig.set_size_inches(size_x, size_y)
-for df_bg_spl, df_wt_spl, v_inf in zip(df_bg_spl_list, df_wt_spl_list, v_inf_list):
-    sns.lineplot(data=df_wt_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s', ax=ax)
-#bpm_df = pd.DataFrame({'freq': bpm_f, 'spl': SPLTBL_tot})
-#bpm_df = bpm_df[(bpm_df['freq'] >= f_lower) & (bpm_df['freq'] <= f_upper)]
-#sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = x m/s', ax=ax)
-ax.set_title('SPL')
-ax.grid(True)
-ax.set_ylabel('SPL [dB]')
+# Plot results for wind turbine per v_inf
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for df_wt_spl, v_inf, color in zip(df_wt_spl_list, v_inf_list, colors):
+    ax.plot(df_wt_spl['freq'], df_wt_spl['spl'], color=color, label=f'{v_inf} m/s')
 ax.set_xlabel('Frequency [Hz]')
-plt.xscale('log')
-plt.xticks(x_ticks, x_ticks)
-plt.tight_layout()
-plt.savefig('saves/spl.png', dpi=300)
+ax.set_ylabel('SPL [dB]')
+ax.set_title('SPL of wind turbine noise')
+ax.legend()
+ax.grid(True)
+plt.savefig('saves/SPL.png')
 plt.show()
 
-# Plot df_wt_bg_spl
-fig, ax = plt.subplots()
-fig.set_size_inches(size_x, size_y)
-for df_wt_bg_spl, v_inf in zip(df_wt_bg_spl_list, v_inf_list):
-    sns.lineplot(data=df_wt_bg_spl, x='freq', y='spl', label=f'v_inf = {v_inf} m/s')
-#sns.lineplot(data=bpm_df, x='freq', y='spl', label=f'(BPM) v_inf = {v_inf} m/s')
-ax.set_title('SPL (wt - bg)')
-ax.grid(True)
-ax.set_ylabel('SPL [dB]')
-ax.set_xlabel('Frequency [Hz]')
-plt.xscale('log')
-plt.xticks(x_ticks, x_ticks)
-plt.tight_layout()
-plt.savefig('saves/spl_wt_bg.png', dpi=300)
-plt.show()
 
 # ---------------------------------- SPL_1/3 ----------------------------------
 
@@ -334,9 +288,10 @@ freq_d = 10 ** 0.05
 f_upper_1_3 = freq_centre * freq_d
 f_lower_1_3 = freq_centre / freq_d
 
+print('[*] Calculating SPL_1/3...')
 for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, df_wt_bg_welch_psd_list, v_inf_list):
-
-    print(f'[*] Calculating SPL_1/3 for v_inf = {v_inf} m/s...')
+    # Calculate SPL
+    print(f'    v_inf = {v_inf} m/s...')
 
     df_bg_spl = pd.DataFrame(columns=['freq', 'spl'])
     df_wt_spl = pd.DataFrame(columns=['freq', 'spl'])
@@ -372,27 +327,27 @@ for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_wel
     df_wt_spl_1_3_list.append(df_wt_spl)
     df_wt_bg_spl_1_3_list.append(df_wt_bg_spl)
 
-print('[*] Plotting results...')
-fig, ax = plt.subplots(figsize=(10, 6))
-colors = []
-for i in range(len(v_inf_list)):
-    colors.append(plt.cm.get_cmap(color_scheme, len(v_inf_list))(i))
-for df_wt_spl_1_3, df_bpm, v_inf in zip(df_wt_spl_1_3_list, df_bpm_list, v_inf_list):
-    ax.plot(df_wt_spl_1_3['freq'], df_wt_spl_1_3['spl'], color=colors[v_inf_list.index(v_inf)], label=f'v_inf = {v_inf} m/s')
-    ax.plot(df_bpm['freq'], df_bpm['spl'], '--', color=colors[v_inf_list.index(v_inf)])
+# Plot results for wind turbine per v_inf
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for df_wt_spl_1_3, df_bpm, v_inf, color in zip(df_wt_spl_1_3_list, df_bpm_list, v_inf_list, colors):
+    ax.plot(df_wt_spl_1_3['freq'], df_wt_spl_1_3['spl'], color=color, label=f'{v_inf} m/s')
+    ax.plot(df_bpm['freq'], df_bpm['spl'], color=color, linestyle='--')
+ax.set_xscale('log')
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('SPL [dB]')
-ax.set_title('SPL_1/3')
+ax.set_title('SPL of wind turbine noise')
 ax.legend()
 ax.grid(True)
-plt.savefig('SPL_1_3.png', dpi=300)
+plt.savefig('saves/SPL_1_3.png')
 plt.show()
+
 
 # ---------------------------------- OSPL ----------------------------------
 
 OSPL_bg_list = []
 OSPL_wt_list = []
 
+print('[*] Calculating OSPL...')
 for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, v_inf_list):
     # Sum PSD in band f_lower to f_upper
     sum_bg = df_bg_welch_psd[(df_bg_welch_psd['freq'] >= 800) & (df_bg_welch_psd['freq'] <= 3000)].sum()
@@ -403,7 +358,7 @@ for df_bg_welch_psd, df_wt_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_w
     ospl_wt = 10 * np.log10((sum_wt[0] * freq_res_psd) / (p_ref ** 2))
 
     # Print results
-    print(f'[*] v_inf: {v_inf} m/s')
+    print(f'    v_inf: {v_inf} m/s')
     print(f'    OSPL background: {ospl_bg} dB')
     print(f'    OSPL wind turbine: {ospl_wt} dB')
 
@@ -417,21 +372,18 @@ print(f'[*] Trendline: {trend_ideal_fn[0]}*log(x) + {trend_ideal_fn[1]}')
 print(f'[*] R^2: {np.corrcoef(np.log10(v_inf_list), OSPL_wt_list)[0, 1] ** 2}')
 
 # Plot OSPL vs v_inf as scatter plot with line connecting points
-print('[*] Plotting results...')
-fig, ax = plt.subplots()
-fig.set_size_inches(size_x, size_y)
-sns.scatterplot(x=v_inf_list, y=OSPL_wt_list, ax=ax, color='blue', label='Wind turbine OSPL')
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+sns.scatterplot(x=v_inf_list, y=OSPL_wt_list, ax=ax, label='Wind turbine OSPL', color=colors[1])
 
 # Plot trend line (dB scale)
 x = np.linspace(min(v_inf_list), max(v_inf_list), 100)
 y = trend_ideal_fn[0] * np.log10(x) + trend_ideal_fn[1]
-sns.lineplot(x=x, y=y, ax=ax, color='blue', label=f'{trend_ideal_fn[0]:.2f}*log(x) + {trend_ideal_fn[1]:.2f}')
+sns.lineplot(x=x, y=y, ax=ax, color=colors[0], label=f'{trend_ideal_fn[0]:.2f}*log(x) + {trend_ideal_fn[1]:.2f}')
 
 ax.set_title(f'OSPL ({800} - {3000} Hz)')
 ax.grid(True)
 ax.set_ylabel('OSPL [dB]')
 ax.set_xlabel('v_inf [m/s]')
+ax.grid(True)
 plt.savefig(f'saves/OSPL_800_3000.png', dpi=300)
 plt.show()
-
-print('[*] Done!')
