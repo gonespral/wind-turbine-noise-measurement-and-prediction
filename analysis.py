@@ -282,10 +282,17 @@ df_wt_spl_1_3_list = []
 df_wt_bg_spl_1_3_list = []
 
 # Evaluate SPL in the frequency domain in 3rd octave bands
-freq_centre = 10 ** (0.1 * np.arange(12, 43))
+# freq_centre = 10 ** (0.1 * np.arange(12, 43))
+freq_centre = np.array([100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300,
+               8000, 10000, 12500, 16000, 20000, 25000, 31500, 40000])
 freq_d = 10 ** 0.05
 f_upper_1_3 = freq_centre * freq_d
 f_lower_1_3 = freq_centre / freq_d
+
+#f = (/ 100.0_dp, 125.0_dp, 160.0_dp, 200.0_dp, 250.0_dp, 315.0_dp, 400.0_dp, 500.0_dp, &
+#     630.0_dp, 800.0_dp, 1000.0_dp, 1250.0_dp, 1600.0_dp, 2000.0_dp, 2500.0_dp, 3150.0_dp, &
+#     4000.0_dp, 5000.0_dp, 6300.0_dp, 8000.0_dp, 10000.0_dp, 12500.0_dp, 16000.0_dp, &
+#     20000.0_dp, 25000.0_dp, 31500.0_dp, 40000.0_dp /)
 
 print('[*] Calculating SPL_1/3...')
 for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_welch_psd_list, df_wt_welch_psd_list, df_wt_bg_welch_psd_list, v_inf_list):
@@ -326,6 +333,15 @@ for df_bg_welch_psd, df_wt_welch_psd, df_wt_bg_welch_psd, v_inf in zip(df_bg_wel
     df_wt_spl_1_3_list.append(df_wt_spl)
     df_wt_bg_spl_1_3_list.append(df_wt_bg_spl)
 
+# Estimate error between BPM model and wind turbine
+df_error_list = []
+for df_wt_spl_1_3, df_bpm, v_inf in zip(df_wt_spl_1_3_list, df_bpm_list, v_inf_list):
+    df_error = pd.DataFrame(columns=['freq', 'error'])
+    df_error = df_error.iloc[0:0]
+    for i in range(len(df_wt_spl_1_3)):
+        df_error = df_error.append({'freq': df_wt_spl_1_3.iloc[i]['freq'], 'error': df_wt_spl_1_3.iloc[i]['spl'] - df_bpm.iloc[i]['spl']}, ignore_index=True)
+    df_error_list.append(df_error)
+
 # Plot results for wind turbine per v_inf
 fig, ax = plt.subplots(figsize=(size_x, size_y))
 for df_wt_spl_1_3, df_bpm, v_inf, color in zip(df_wt_spl_1_3_list, df_bpm_list, v_inf_list, colors):
@@ -341,6 +357,19 @@ plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/SPL_1_3.png')
 plt.show()
 
+# Plot error between wind turbine and BPM model per v_inf
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for df_error, v_inf, color in zip(df_error_list, v_inf_list, colors):
+    ax.plot(df_error['freq'], df_error['error'], color=color, label=f'{v_inf} m/s')
+ax.set_xscale('log')
+ax.set_xlabel('Frequency [Hz]')
+ax.set_ylabel('Error [dB]')
+ax.set_title('Error (SPL 1/3)')
+ax.legend()
+ax.grid(True)
+plt.xticks(x_ticks, x_ticks)
+plt.savefig('saves/Error_1_3.png')
+plt.show()
 
 # ---------------------------------- OSPL ----------------------------------
 
