@@ -5,7 +5,6 @@ import scipy.signal as signal
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
-import pickle as pkl
 
 with open('misc/windmill.txt', 'r') as f:
     print(f.read())
@@ -13,12 +12,12 @@ with open('misc/windmill.txt', 'r') as f:
 # ----------------------------- Config ----------------------------------
 p_ref = 2E-5  # Reference pressure (Pa)
 sample_rate = 48128  # Hz
-f_lower = 300  # Hz
-f_upper = 4000 # Hz
+f_lower = 500  # Hz
+f_upper = 5000 # Hz
 scaling_factor = 1
 size_x = 6.5 * scaling_factor
 size_y = 5 * scaling_factor
-x_ticks = [500, 1000, 1500, 2000, 2500, 3000, 4000]
+x_ticks = [500, 1000, 1500, 2000, 2500, 3000, 4000, 5000]
 color_scheme = 'viridis'
 
 # Get paths for data files
@@ -96,7 +95,7 @@ for v_inf in v_inf_list:
 
 # Prepare colors for plots
 colors = []
-for i in range(len(v_inf_list) + 5):
+for i in range(len(v_inf_list) + 10):
     colors.append(plt.cm.get_cmap(color_scheme, len(v_inf_list))(i))
 
 
@@ -209,9 +208,9 @@ for df_wt_welch_psd_db, v_inf, color in zip(df_wt_welch_psd_db_list, v_inf_list,
     ax.plot(df_wt_welch_psd_db['freq'], df_wt_welch_psd_db['psd'], color=color, label=f'{v_inf} m/s')
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('PSD [dB\Hz]')
-ax.set_title('PSD')
 ax.legend()
 ax.grid(True)
+plt.tight_layout()
 plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/PSD.png')
 plt.show()
@@ -267,9 +266,9 @@ for df_wt_spl, v_inf, color in zip(df_wt_spl_list, v_inf_list, colors):
     sns.lineplot(x='freq', y='spl', data=df_wt_spl, color=color, label=f'{v_inf} m/s')
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('SPL [dB]')
-ax.set_title('SPL')
 ax.legend()
 ax.grid(True)
+plt.tight_layout()
 plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/SPL.png')
 plt.show()
@@ -350,9 +349,9 @@ for df_wt_spl_1_3, df_bpm, v_inf, color in zip(df_wt_spl_1_3_list, df_bpm_list, 
 ax.set_xscale('log')
 ax.set_xlabel('Frequency [Hz]')
 ax.set_ylabel('SPL [dB]')
-ax.set_title('SPL (1/3)')
 ax.legend()
 ax.grid(True)
+plt.tight_layout()
 plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/SPL_1_3.png')
 plt.show()
@@ -409,10 +408,10 @@ x = np.linspace(min(v_inf_list), max(v_inf_list), 100)
 y = trend_ideal_fn[0] * np.log10(x) + trend_ideal_fn[1]
 sns.lineplot(x=x, y=y, ax=ax, color=colors[0], label=f'{trend_ideal_fn[0]:.2f}*log(x) + {trend_ideal_fn[1]:.2f}')
 
-ax.set_title(f'OSPL ({800} - {3000} Hz)')
 ax.grid(True)
 ax.set_ylabel('OSPL [dB]')
 ax.set_xlabel('v_inf [m/s]')
 ax.grid(True)
+plt.tight_layout()
 plt.savefig(f'saves/OSPL_800_3000.png', dpi=300)
 plt.show()
