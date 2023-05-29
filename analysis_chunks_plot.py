@@ -11,6 +11,7 @@ size_x = 6.5 * scaling_factor
 size_y = 5 * scaling_factor
 x_ticks = [500, 1000, 1500, 2000, 3000, 4000, 5000]
 color_scheme = 'viridis'
+n_smooth = 10
 
 # Load data from pickle file
 with open('saves/processed_data.pkl', 'rb') as f:
@@ -29,8 +30,7 @@ for i in range(len(v_inf_list) + 10):
 # Plot PSD for wt
 fig, ax = plt.subplots(figsize=(size_x, size_y))
 for wt, v_inf, color in zip(wt_psd_list, v_inf_list, colors):
-    # Add smoothing
-    wt = wt.rolling(10, center=True).mean()
+    wt = wt.rolling(n_smooth, center=True).mean()
     wt.plot(ax=ax, color=color, label=f'{v_inf} m/s')
 ax.set_xscale('log')
 ax.set_xlabel('Frequency (Hz)')
@@ -45,8 +45,7 @@ plt.show()
 # Plot PSD for bg
 fig, ax = plt.subplots(figsize=(size_x, size_y))
 for bg, v_inf, color in zip(bg_psd_list, v_inf_list, colors):
-    # Add smoothing
-    bg = bg.rolling(10, center=True).mean()
+    bg = bg.rolling(n_smooth, center=True).mean()
     bg.plot(ax=ax, color=color, label=f'{v_inf} m/s')
 ax.set_xscale('log')
 ax.set_xlabel('Frequency (Hz)')
