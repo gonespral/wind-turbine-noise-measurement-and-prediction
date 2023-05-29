@@ -129,28 +129,67 @@ for bg, wt, v_inf in zip(bg_psd_list, wt_psd_list, v_inf_list):
     for bg_chunk, wt_chunk in zip(bg, wt):
         bg_values.append(bg_chunk.values)
         wt_values.append(wt_chunk.values)
+
     bg_avg = pd.DataFrame(np.mean(bg_values, axis=0), columns=bg[0].columns)
     wt_avg = pd.DataFrame(np.mean(wt_values, axis=0), columns=wt[0].columns)
 
     bg_psd_avg_list.append(bg_avg)
     wt_psd_avg_list.append(wt_avg)
 
-bg_psd_avg_avg_list = []
-wt_psd_avg_avg_list = []
+bg_psd_avg_db_list = []
+wt_psd_avg_db_list = []
 
-# Average columns and convert to dB
-for bg_avg, wt_avg in zip(bg_psd_avg_list, wt_psd_avg_list):
-    bg_psd_avg_avg_list.append(pd.DataFrame())
-    wt_psd_avg_avg_list.append(pd.DataFrame())
-    for bg_col, wt_col in zip(bg_avg, wt_avg):
-        bg_psd_avg_avg_list[-1][bg_col] = 10 * np.log10(bg_avg[bg_col] / (p_ref ** 2))
-        wt_psd_avg_avg_list[-1][wt_col] = 10 * np.log10(wt_avg[wt_col] / (p_ref ** 2))
+for bg, wt in zip(bg_psd_avg_list, wt_psd_avg_list):
+    # Create row for average
+    bg.loc['avg'] = bg.mean()
+    wt.loc['avg'] = wt.mean()
+
+    # Remove all other rows
+    bg = bg.loc['avg']
+    wt = wt.loc['avg']
+
+    # Convert all values to dB (relative to p_ref)
+    bg = 10 * np.log10(bg / p_ref)
+    wt = 10 * np.log10(wt / p_ref)
+
+    bg_psd_avg_db_list.append(bg)
+    wt_psd_avg_db_list.append(wt)
+
+# ------------------------- SPL (1/3) ----------------------------------
+
+df_bg_spl_1_3_list = []
+df_wt_spl_1_3_list = []
+
+# Evaluate SPL in the frequency domain in 3rd octave bands
+# freq_centre = 10 ** (0.1 * np.arange(12, 43))
+freq_centre = np.array([100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300,
+               8000, 10000, 12500, 16000, 20000, 25000, 31500, 40000])
+freq_d = 10 ** 0.05
+f_upper_1_3 = freq_centre * freq_d
+f_lower_1_3 = freq_centre / freq_d
+
+print('[*] Calculating SPL (1/3)...')
+for bg, wt, v_inf in zip(bg_psd_avg_db_list, wt_psd_avg_db_list, v_inf_list):
+    print(f'    v_inf = {v_inf} m/s')
+    df_bg_spl_1_3_list.append(pd.DataFrame())
+    df_wt_spl_1_3_list.append(pd.DataFrame())
+    for index, row in bg.iterrows():
+        spl_bg = []
+        spl_wt = []
+        for f_lower, f_upper in zip(f_lower_1_3, f_upper_1_3):
+            spl_bg.append(10 * np.log10(np.sum(10 ** (row.loc[f_lower:f_upper] / 10))))
+            spl_wt.append(10 * np.log10(np.sum(10 ** (wt.loc[f_lower:f_upper] / 10))))
+        df_bg_spl_1_3_list[-1] = df_bg_spl_1_3_list[-1].append(pd.Series(spl_bg, index=freq_centre), ignore_index=True)
+        df_wt_spl_1_3_list[-1] = df_wt_spl_1_3_list[-1].append(pd.Series(spl_wt, index=freq_centre), ignore_index=True)
+
 
 # ------------------------- Save data ---------------------------------
 print('[*] Saving data...')
 with open('saves/processed_data.pkl', 'wb') as f:
-    pkl.dump({'bg_psd_list': bg_psd_avg_avg_list,
-              'wt_psd_list': wt_psd_avg_avg_list,
+    pkl.dump({'bg_psd_list': bg_psd_avg_db_list,
+              'wt_psd_list': wt_psd_avg_db_list,
+              'bg_spl_1_3_list': df_bg_spl_1_3_list,
+              'wt_spl_1_3_list': df_wt_spl_1_3_list,
               'v_inf_list': v_inf_list}, f)
 
 
