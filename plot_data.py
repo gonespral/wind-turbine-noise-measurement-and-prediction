@@ -56,8 +56,8 @@ ax.grid(True, which='both')
 ax.set_xlim(f_lower, f_upper)
 plt.title('Wind Turbine')
 plt.xticks(x_ticks, x_ticks)
-plt.show()
 plt.savefig('saves/wt_psd.png', dpi=300)
+plt.show()
 
 # Plot SPL for wt
 fig, ax = plt.subplots(figsize=(size_x, size_y))
@@ -72,8 +72,8 @@ ax.grid(True, which='both')
 ax.set_xlim(f_lower, f_upper)
 plt.title('Wind Turbine')
 plt.xticks(x_ticks, x_ticks)
-plt.show()
 plt.savefig('saves/wt_spl.png', dpi=300)
+plt.show()
 
 # Plot abs error between SPL for wt and BPM
 fig, ax = plt.subplots(figsize=(size_x, size_y))
@@ -88,8 +88,8 @@ ax.grid(True, which='both')
 ax.set_xlim(f_lower, f_upper)
 plt.title('Error')
 plt.xticks(x_ticks, x_ticks)
-plt.show()
 plt.savefig('saves/wt_error.png', dpi=300)
+plt.show()
 
 
 
