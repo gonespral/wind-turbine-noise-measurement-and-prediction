@@ -55,7 +55,7 @@ nu = 1.78e-5
 c0 = 343.2
 psi = 0
 AR = 6.66
-noise_corr = 0  # 0.8697933840957954
+noise_corr = 0 #0.8697933840957954
 
 # Iterate over velocities
 for vel in [8., 9., 10., 11., 12.]:
