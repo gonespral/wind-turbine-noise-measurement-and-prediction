@@ -134,30 +134,50 @@ for bg, wt, v_inf in zip(bg_psd_list, wt_psd_list, v_inf_list):
     bg_psd_avg_list.append(bg_avg)
     wt_psd_avg_list.append(wt_avg)
 
-# Denoised PSD
-denoised_psd_avg_list = []
-for bg, wt in zip(bg_psd_avg_list, wt_psd_avg_list):
-    denoised_psd_avg_list.append(wt - bg)
-
 bg_psd_avg_db_list = []
 wt_psd_avg_db_list = []
-denoised_psd_avg_db_list = []
 
-for bg_avg, wt_avg, denoised_avg in zip(bg_psd_avg_list, wt_psd_avg_list, denoised_psd_avg_list):
+for bg_avg, wt_avg in zip(bg_psd_avg_list, wt_psd_avg_list):
     # Convert all values to dB (relative to p_ref)
     bg_avg = 10 * np.log10(bg_avg / (p_ref ** 2))
     wt_avg = 10 * np.log10(wt_avg / (p_ref ** 2))
-    denoised_avg = 10 * np.log10(denoised_avg / (p_ref ** 2))
 
     bg_psd_avg_db_list.append(bg_avg)
     wt_psd_avg_db_list.append(wt_avg)
-    denoised_psd_avg_db_list.append(denoised_avg)
+
+# ------------------------- SPL -----------------------------------------
+
+bg_spl_list = []
+wt_spl_list = []
+
+freq_step = 10 # Hz
+freq_bands = np.arange(0, max(f), freq_step)
+
+print('[*] Calculating SPL...')
+
+for bg_psd, wt_psd, v_inf in zip(bg_psd_avg_list, wt_psd_avg_list, v_inf_list):
+    # Calculate SPL
+    print(f'    v_inf = {v_inf} m/s')
+
+    bg_spl = pd.DataFrame()
+    wt_spl = pd.DataFrame()
+
+    for l, c, u in zip(freq_bands[:-1], freq_bands[1:], freq_bands[2:]):
+        # Sum PSD in band
+        bg_sum = bg_psd.loc[(bg_psd.index >= l) & (bg_psd.index < u)].sum() * freq_res
+        wt_sum = wt_psd.loc[(wt_psd.index >= l) & (wt_psd.index < u)].sum() * freq_res
+
+        # Convert to SPL
+        bg_spl = bg_spl.append(pd.Series(10 * np.log10(bg_sum / (p_ref ** 2)), name=c))
+        wt_spl = wt_spl.append(pd.Series(10 * np.log10(wt_sum / (p_ref ** 2)), name=c))
+
+    bg_spl_list.append(bg_spl)
+    wt_spl_list.append(wt_spl)
 
 # ------------------------- SPL (1/3) ----------------------------------
 
 bg_spl_1_3_list = []
 wt_spl_1_3_list = []
-denoised_spl_1_3_list = []
 
 # Evaluate SPL in the frequency domain in 3rd octave bands
 freq_centre = np.array([100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300,
@@ -167,7 +187,7 @@ f_upper_1_3 = freq_centre * freq_d
 f_lower_1_3 = freq_centre / freq_d
 
 print('[*] Calculating SPL (1/3)...')
-for bg_psd, wt_psd, denoised_psd, v_inf in zip(bg_psd_avg_list, wt_psd_avg_list, denoised_psd_avg_list, v_inf_list):
+for bg_psd, wt_psd, v_inf in zip(bg_psd_avg_list, wt_psd_avg_list, v_inf_list):
     print(f'    v_inf = {v_inf} m/s')
 
     bg_spl = pd.DataFrame()
@@ -178,30 +198,55 @@ for bg_psd, wt_psd, denoised_psd, v_inf in zip(bg_psd_avg_list, wt_psd_avg_list,
         # Integrate PSD in band
         bg_sum = bg_psd.loc[(bg_psd.index >= l) & (bg_psd.index <= u)].sum() * freq_res
         wt_sum = wt_psd.loc[(wt_psd.index >= l) & (wt_psd.index <= u)].sum() * freq_res
-        denoised_sum = denoised_psd.loc[(denoised_psd.index >= l) & (denoised_psd.index <= u)].sum() * freq_res
 
         # Convert to SPL
         bg_spl = bg_spl.append(pd.Series(10 * np.log10(bg_sum / (p_ref ** 2)), name=c))
         wt_spl = wt_spl.append(pd.Series(10 * np.log10(wt_sum / (p_ref ** 2)), name=c))
-        denoised_spl = denoised_spl.append(pd.Series(10 * np.log10(denoised_sum / (p_ref ** 2)), name=c))
 
     bg_spl_1_3_list.append(bg_spl)
     wt_spl_1_3_list.append(wt_spl)
-    denoised_spl_1_3_list.append(denoised_spl)
 
 # Convert all SPL dataframes to series
 bg_spl_1_3_list = [bg_spl_1_3_list[i].iloc[:, 0] for i in range(len(bg_spl_1_3_list))]
 wt_spl_1_3_list = [wt_spl_1_3_list[i].iloc[:, 0] for i in range(len(wt_spl_1_3_list))]
+
+# -------------------------- OSPL --------------------------------------
+
+bg_ospl_list = []
+wt_ospl_list = []
+
+f_lower = 800
+f_upper = 3000
+
+print('[*] Calculating OSPL...')
+for bg_psd_avg, wt_psd_avg, v_inf in zip(bg_psd_avg_list, wt_psd_avg_list, v_inf_list):
+    # Sum PSD in band f_lower to f_upper
+    bg_sum = bg_psd_avg.loc[(bg_psd_avg.index >= f_lower) & (bg_psd_avg.index <= f_upper)].sum() * freq_res
+    wt_sum = wt_psd_avg.loc[(wt_psd_avg.index >= f_lower) & (wt_psd_avg.index <= f_upper)].sum() * freq_res
+
+    # Convert to OSPL
+    bg_ospl = 10 * np.log10(bg_sum / (p_ref ** 2))
+    wt_ospl = 10 * np.log10(wt_sum / (p_ref ** 2))
+
+    bg_ospl_list.append(bg_ospl)
+    wt_ospl_list.append(wt_ospl)
+
+    print(f'    v_inf = {v_inf} m/s')
+    print(f'    bg_ospl = {bg_ospl} dB')
+    print(f'    wt_ospl = {wt_ospl} dB')
+
 
 # ------------------------- Save data ---------------------------------
 print('[*] Saving data...')
 with open('saves/processed_data.pkl', 'wb') as f:
     pkl.dump({'bg_psd_list': bg_psd_avg_db_list,
               'wt_psd_list': wt_psd_avg_db_list,
-              'denoised_psd_list': denoised_psd_avg_db_list,
+              'bg_spl_list': bg_spl_list,
+              'wt_spl_list': wt_spl_list,
               'bg_spl_1_3_list': bg_spl_1_3_list,
               'wt_spl_1_3_list': wt_spl_1_3_list,
-              'denoised_spl_1_3_list': denoised_spl_1_3_list,
+              'bg_ospl_list': bg_ospl_list,
+              'wt_ospl_list': wt_ospl_list,
               'v_inf_list': v_inf_list}, f)
 
 

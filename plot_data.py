@@ -18,15 +18,13 @@ with open('saves/processed_data.pkl', 'rb') as f:
     data = pkl.load(f)
     bg_psd_list = data['bg_psd_list'] # List of dataframes => Index: freq, Value: PSD
     wt_psd_list = data['wt_psd_list'] # List of dataframes => Index: freq, Value: PSD
-    denoised_psd_list = data['denoised_psd_list'] # List of dataframes => Index: freq, Value: PSD
+    bg_spl_list = data['bg_spl_list'] # List of dataframes => Index: freq, Value: SPL
+    wt_spl_list = data['wt_spl_list'] # List of dataframes => Index: freq, Value: SPL
     bg_spl_1_3_list = data['bg_spl_1_3_list'] # List of dataframes => Index: freq, Value: SPL
     wt_spl_1_3_list = data['wt_spl_1_3_list'] # List of dataframes => Index: freq, Value: SPL
-    denoised_spl_1_3_list = data['denoised_spl_1_3_list'] # List of dataframes => Index: freq, Value: SPL
+    bg_ospl_list = data['bg_ospl_list'] # List of SPL values
+    wt_ospl_list = data['wt_ospl_list'] # List of SPL values
     v_inf_list = data['v_inf_list'] # List of velocities
-
-# Convert spl dataframes to series
-bg_spl_1_3_list = [bg_spl_1_3_list[i][0] for i in range(len(bg_spl_1_3_list))]
-wt_spl_1_3_list = [wt_spl_1_3_list[i][0] for i in range(len(wt_spl_1_3_list))]
 
 # Import data from BPM model (data/BPM/data.csv)
 bpm_list = []
@@ -51,16 +49,60 @@ for wt, v_inf, color in zip(wt_psd_list, v_inf_list, colors):
     wt.plot(ax=ax, color=color, label=f'{v_inf} m/s')
 ax.set_xscale('log')
 ax.set_xlabel('Frequency (Hz)')
-ax.set_ylabel('PSD (dB)')
+ax.set_ylabel('PSD (dB/Hz)')
 ax.legend()
 ax.grid(True, which='both')
 ax.set_xlim(f_lower, f_upper)
-plt.title('Wind Turbine')
 plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/wt_psd.png', dpi=300)
 plt.show()
 
+# Plot SNR for wt/bg
+SNR_list = []
+for wt, bg, v_inf in zip(wt_psd_list, bg_psd_list, v_inf_list):
+    SNR_list.append(10 * np.log10(wt / bg))
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for SNR, v_inf, color in zip(SNR_list, v_inf_list, colors):
+    SNR = SNR.rolling(n_smooth, center=True).mean()
+    SNR.plot(ax=ax, color=color, label=f'{v_inf} m/s')
+ax.set_xscale('log')
+ax.set_xlabel('Frequency (Hz)')
+ax.set_ylabel('SNR (dB)')
+ax.legend()
+ax.grid(True, which='both')
+ax.set_xlim(f_lower, f_upper)
+plt.xticks(x_ticks, x_ticks)
+plt.savefig('saves/wt_bg_snr.png', dpi=300)
+plt.show()
+
 # Plot SPL for wt
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for wt, v_inf, color in zip(wt_spl_list, v_inf_list, colors):
+    wt.plot(ax=ax, color=color, label=f'{v_inf} m/s')
+ax.set_xscale('log')
+ax.set_xlabel('Frequency (Hz)')
+ax.set_ylabel('SPL (dB)')
+ax.legend()
+ax.grid(True, which='both')
+ax.set_xlim(f_lower, f_upper)
+plt.xticks(x_ticks, x_ticks)
+plt.savefig('saves/wt_spl.png', dpi=300)
+plt.show()
+
+# Plot wide spectrum SPL for wt
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for wt, v_inf, color in zip(wt_spl_list, v_inf_list, colors):
+    wt.plot(ax=ax, color=color, label=f'{v_inf} m/s')
+ax.set_xscale('linear')
+ax.set_xlabel('Frequency (Hz)')
+ax.set_ylabel('SPL (dB)')
+ax.legend()
+ax.grid(True, which='both')
+ax.set_xlim(1, 25000)
+plt.savefig('saves/wt_spl=wideband.png', dpi=300)
+plt.show()
+
+# Plot SPL 1/3 for wt
 fig, ax = plt.subplots(figsize=(size_x, size_y))
 for wt, bpm, v_inf, color in zip(wt_spl_1_3_list, bpm_list, v_inf_list, colors):
     wt.plot(ax=ax, color=color, label=f'{v_inf} m/s')
@@ -71,58 +113,48 @@ ax.set_ylabel('SPL (dB)')
 ax.legend()
 ax.grid(True, which='both')
 ax.set_xlim(f_lower, f_upper)
-plt.title('Wind Turbine')
 plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/wt_spl.png', dpi=300)
-plt.show()
-
-# Plot SPL for denoised with BPM
-fig, ax = plt.subplots(figsize=(size_x, size_y))
-for denoised, bpm, v_inf, color in zip(denoised_spl_1_3_list, bpm_list, v_inf_list, colors):
-    denoised.plot(ax=ax, color=color, label=f'{v_inf} m/s')
-    ax.plot(bpm, color=color, linestyle='--')
-ax.set_xscale('log')
-ax.set_xlabel('Frequency (Hz)')
-ax.set_ylabel('SPL (dB)')
-ax.legend()
-ax.grid(True, which='both')
-ax.set_xlim(f_lower, f_upper)
-plt.title('Denoised')
-plt.xticks(x_ticks, x_ticks)
-plt.savefig('saves/denoised_spl.png', dpi=300)
 plt.show()
 
 # Plot abs error between SPL for wt and BPM
 fig, ax = plt.subplots(figsize=(size_x, size_y))
 for wt, bpm, v_inf, color in zip(wt_spl_1_3_list, bpm_list, v_inf_list, colors):
     error = np.abs(wt - bpm)
-    ax.plot(error, color=color, label=f'{v_inf} m/s')
+    ax.plot(error, color=color, label=f'e: {v_inf} m/s')
 ax.set_xscale('log')
 ax.set_xlabel('Frequency (Hz)')
 ax.set_ylabel('SPL (dB)')
 ax.legend()
 ax.grid(True, which='both')
 ax.set_xlim(f_lower, f_upper)
-plt.title('Error wt - BPM')
 plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/wt_error.png', dpi=300)
 plt.show()
 
-# Plot abs error between SPL for denoised and BPM
+# Get trendline A * log10(x) + B
+trend_ideal_fn = np.polyfit(np.log10(v_inf_list), wt_ospl_list, 1)
+print(f'    Trendline: {trend_ideal_fn[0]} * log10(v_inf) + {trend_ideal_fn[1]}')
+print(f'    R^2: {np.corrcoef(np.log10(v_inf_list), wt_ospl_list)[0, 1] ** 2}')
+
+# Plot OSPL for wt and trendline
 fig, ax = plt.subplots(figsize=(size_x, size_y))
-for denoised, bpm, v_inf, color in zip(denoised_spl_1_3_list, bpm_list, v_inf_list, colors):
-    error = np.abs(denoised[0] - bpm)
-    ax.plot(error, color=color, label=f'{v_inf} m/s')
+# Plot points
+for wt_ospl, v_inf in zip(wt_ospl_list, v_inf_list):
+    ax.scatter(v_inf, wt_ospl, color='blue')
+ax.plot(v_inf_list, trend_ideal_fn[0] * np.log10(v_inf_list) + trend_ideal_fn[1], label=f'{round(trend_ideal_fn[0], 2)} * log10(v_inf) + {round(trend_ideal_fn[1], 2)}')
 ax.set_xscale('log')
-ax.set_xlabel('Frequency (Hz)')
-ax.set_ylabel('SPL (dB)')
+ax.set_xlabel('Velocity (m/s)')
+ax.set_ylabel('OSPL (dB)')
 ax.legend()
 ax.grid(True, which='both')
-ax.set_xlim(f_lower, f_upper)
-plt.title('Error denoised - BPM')
-plt.xticks(x_ticks, x_ticks)
-plt.savefig('saves/denoised_error.png', dpi=300)
+plt.xticks(v_inf_list, v_inf_list)
+plt.savefig('saves/wt_ospl.png', dpi=300)
 plt.show()
+
+
+
+
 
 
 
