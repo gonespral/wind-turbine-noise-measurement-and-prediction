@@ -35,6 +35,7 @@ for v_inf in v_inf_list:
     bpm = pd.read_csv(f'BPM_BYU/data/data{int(v_inf)}.csv', sep=',')
     # Move column freq to index
     bpm = bpm.set_index('freq')
+    bpm.index = bpm.index.astype(int)
     bpm = bpm['spl']
     bpm_list.append(bpm)
 
@@ -75,21 +76,54 @@ plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/wt_spl.png', dpi=300)
 plt.show()
 
-# Plot abs error between SPL for wt and BPM
+# Plot SPL for denoised with BPM
 fig, ax = plt.subplots(figsize=(size_x, size_y))
-for wt, bpm, v_inf, color in zip(wt_spl_1_3_list, bpm_list, v_inf_list, colors):
-    error = wt - bpm
-    error.plot(ax=ax, color=color, label=f'{v_inf} m/s')
+for denoised, bpm, v_inf, color in zip(denoised_spl_1_3_list, bpm_list, v_inf_list, colors):
+    denoised.plot(ax=ax, color=color, label=f'{v_inf} m/s')
+    ax.plot(bpm, color=color, linestyle='--')
 ax.set_xscale('log')
 ax.set_xlabel('Frequency (Hz)')
 ax.set_ylabel('SPL (dB)')
 ax.legend()
 ax.grid(True, which='both')
 ax.set_xlim(f_lower, f_upper)
-plt.title('Error')
+plt.title('Denoised')
+plt.xticks(x_ticks, x_ticks)
+plt.savefig('saves/denoised_spl.png', dpi=300)
+plt.show()
+
+# Plot abs error between SPL for wt and BPM
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for wt, bpm, v_inf, color in zip(wt_spl_1_3_list, bpm_list, v_inf_list, colors):
+    error = np.abs(wt - bpm)
+    ax.plot(error, color=color, label=f'{v_inf} m/s')
+ax.set_xscale('log')
+ax.set_xlabel('Frequency (Hz)')
+ax.set_ylabel('SPL (dB)')
+ax.legend()
+ax.grid(True, which='both')
+ax.set_xlim(f_lower, f_upper)
+plt.title('Error wt - BPM')
 plt.xticks(x_ticks, x_ticks)
 plt.savefig('saves/wt_error.png', dpi=300)
 plt.show()
+
+# Plot abs error between SPL for denoised and BPM
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for denoised, bpm, v_inf, color in zip(denoised_spl_1_3_list, bpm_list, v_inf_list, colors):
+    error = np.abs(denoised[0] - bpm)
+    ax.plot(error, color=color, label=f'{v_inf} m/s')
+ax.set_xscale('log')
+ax.set_xlabel('Frequency (Hz)')
+ax.set_ylabel('SPL (dB)')
+ax.legend()
+ax.grid(True, which='both')
+ax.set_xlim(f_lower, f_upper)
+plt.title('Error denoised - BPM')
+plt.xticks(x_ticks, x_ticks)
+plt.savefig('saves/denoised_error.png', dpi=300)
+plt.show()
+
 
 
 
