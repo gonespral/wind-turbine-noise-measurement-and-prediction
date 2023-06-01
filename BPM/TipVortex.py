@@ -1,7 +1,6 @@
 
 import numpy as np
-import math
-import common
+import  matplotlib.pyplot as plt
 
 def lfunc(c, alpha_tip):
     """
@@ -61,3 +60,28 @@ def SPL_tip(M, M_max, l, D_h, r_e, st):
     return SPL
 
     #print(nothing)
+f = np.arange(100, 10000)
+M = 0.0234976209
+alpha = 1.516
+Mmax = M_maximum(M, alpha)
+c = 0.3048
+l = lfunc(c, alpha)
+Umax = c*Mmax
+st = stNum(f, l, Umax)
+D = 1
+r = 1.22
+
+fval = []
+
+SPLtip = []
+for i in f:
+
+    SPLtip.append(SPL_tip(M, Mmax, l, D, r, st))
+    if i % 1000 == 0:
+        print(i)
+        print(SPLtip)
+plt.plot(f, SPLtip)
+plt.ylim((-1000, 1000))
+plt.xscale('linear')
+plt.title("SPL vs Frequency")
+plt.show()
