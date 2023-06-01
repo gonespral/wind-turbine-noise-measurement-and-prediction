@@ -1018,7 +1018,7 @@ subroutine OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR,SPLoa,
     end do
 
     ! Correcting with A-weighting
-    ! SPLf(1:nf) = SPLf(1:nf)+AdB(1:nf)
+    SPLf(1:nf) = SPLf(1:nf)+AdB(1:nf)
 
     ! Adding SPLs for each rotation increment
     SPLoa_d(di) = 10.0_dp*log10(sum(10.0_dp**(SPLf/10.0_dp)))
