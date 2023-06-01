@@ -1,4 +1,4 @@
-31#python2.7
+#python2.7
 
 import _bpmacoustic
 import numpy as np
@@ -13,14 +13,15 @@ B = 1.
 h = 1.22
 rad = np.linspace(0, 0.4572, 2)
 c = np.ones(len(rad) - 1) * 0.3048
-c1 = 0.71*c
+#c1 = 0.71 * c
+c1 = (2**0.5)/2 * c
 alpha = np.ones(len(rad) - 1) * 1.516
 nu = 1.4529e-5
 c0 = 340.46
 psi = 90.
 AR = 1.5
-noise_corr = 0.8697933840957954
-
+#noise_corr = 0.
+noise_corr = 1
 print len(rad)
 print 'the radial distances are:'
 print rad
@@ -51,3 +52,4 @@ for vel in [71.3]:
 		writer.writerows(rows)
 	print "Data written to data_validation_case/data" + str(int(vel)) + ".csv"
 
+print c2

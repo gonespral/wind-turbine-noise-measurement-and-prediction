@@ -1085,7 +1085,7 @@ subroutine turbinepos(nturb,nseg,nobs,x,y,obs,winddir,windvel,rpm,B,Hub,&
   SPL_obs = (10.0_dp*log10(sum(10.0_dp**(tSPL/10.0_dp))))*noise_corr
 
 end subroutine turbinepos
-
+print *[c2]
 ! To build for Python interface:
 ! f2py -c  --opt=-O2 -m _bpmacoustic BPM_Acoustic_Model.f90
 ! python C:\Python27\Scripts\f2py.py -c --opt=-O2 --compiler=mingw32 --fcompiler=gfortran -m _bpmacoustic BPM_Acoustic_Model.f90
