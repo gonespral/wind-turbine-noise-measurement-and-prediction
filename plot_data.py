@@ -233,6 +233,21 @@ plt.savefig('saves/wt_ospl.png', dpi=300)
 plt.tight_layout()
 plt.show()
 
+fig, ax = plt.subplots(figsize=(size_x, size_y))
+for freq, spl,color in zip("data71","data71", colors):
+    bg.plot(ax=ax, color=color, label= "Validation")
+    ax.plot(bpm, color=color, linestyle='--')
+ax.set_xscale('linear')
+ax.set_xlabel('THIS IS THE VALIDATION GRAPH (Hz)')
+ax.set_ylabel('SPL (dB)')
+ax.legend()
+ax.grid(True, which='both')
+ax.set_xlim(f_lower, 20000)
+plt.xticks(x_ticks, x_ticks)
+ax.set_ylim(30, 80)
+plt.savefig('saves/validation_spl.png', dpi=300)
+plt.tight_layout()
+plt.show()
 
 
 
