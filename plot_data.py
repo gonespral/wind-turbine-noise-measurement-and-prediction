@@ -6,7 +6,7 @@ import pickle as pkl
 
 f_lower = 300  # Hz
 f_upper = 5000 # Hz
-scaling_factor = 1.1
+scaling_factor = 0.95
 size_x = 6.5 * scaling_factor
 size_y = 5 * scaling_factor
 x_ticks = [500, 1000, 1500, 2000, 3000, 4000, 5000]
@@ -281,7 +281,7 @@ for wt_ospl, v_inf in zip(default_list, defaultf_list):
     ax.plot(v_inf, wt_ospl, color=color, label = "BPM")
 ax.set_xscale('log')
 ax.set_xlim(f_lower, 20000)
-ax.set_xlabel("hz")
+ax.set_xlabel("Frequency (Hz)")
 ax.set_ylabel('OSPL (dB)')
 ax.legend()
 ax.grid(True, which='both')
