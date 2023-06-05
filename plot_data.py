@@ -44,6 +44,43 @@ for v_inf in v_inf_list:
     bpm = bpm['spl']
     bpm_list.append(bpm)
 
+#Import data for validation graph
+val_list = []
+val = pd.read_csv(f'BPM_BYU/data_validation_case/data71.csv', sep=',')
+# Move column freq to index
+val = val.set_index('freq')
+val.index = val.index.astype(int)
+val = val['spl']
+val_list.append(val)
+print(val_list)
+
+valf_list = []
+valf = pd.read_csv(f'BPM_BYU/data_validation_case/data71.csv', sep=',')
+# Move column freq to index
+valf = valf.set_index('spl')
+valf.index = valf.index.astype(int)
+valf = valf['freq']
+valf_list.append(valf)
+print(valf_list)
+
+#import data for default dataset
+default_list = []
+default = pd.read_csv(f'BPM_BYU/data_validation_case/Default Dataset.csv', sep=',')
+# Move column freq to index
+default = default.set_index('freq')
+default.index = default.index.astype(int)
+default = default['spl']
+default_list.append(default)
+print(default_list)
+defaultf_list = []
+defaultf = pd.read_csv(f'BPM_BYU/data_validation_case/Default Dataset.csv', sep=',')
+# Move column freq to index
+defaultf = defaultf.set_index('spl')
+defaultf.index = defaultf.index.astype(int)
+defaultf = defaultf['freq']
+defaultf_list.append(defaultf)
+print(default_list)
+# Prepare colors for plots
 # Prepare colors for plots
 colors = []
 for i in range(len(v_inf_list) + 1):
@@ -234,18 +271,21 @@ plt.tight_layout()
 plt.show()
 
 fig, ax = plt.subplots(figsize=(size_x, size_y))
-for freq, spl,color in zip("data71","data71", colors):
-    bg.plot(ax=ax, color=color, label= "Validation")
-    ax.plot(bpm, color=color, linestyle='--')
-ax.set_xscale('linear')
-ax.set_xlabel('THIS IS THE VALIDATION GRAPH (Hz)')
-ax.set_ylabel('SPL (dB)')
+# Plot points
+for wt_ospl, v_inf in zip(val_list, valf_list):
+    # Get color from cmap but fixed
+    color = plt.cm.get_cmap('viridis')(20)
+    ax.scatter(v_inf, wt_ospl, color=color, label = "validation")
+for wt_ospl, v_inf in zip(default_list, defaultf_list):
+    color = plt.cm.get_cmap('viridis')(20)
+    ax.plot(v_inf, wt_ospl, color=color, label = "BPM")
+ax.set_xscale('log')
+ax.set_xlim(f_lower, 20000)
+ax.set_xlabel("hz")
+ax.set_ylabel('OSPL (dB)')
 ax.legend()
 ax.grid(True, which='both')
-ax.set_xlim(f_lower, 20000)
-plt.xticks(x_ticks, x_ticks)
-ax.set_ylim(30, 80)
-plt.savefig('saves/validation_spl.png', dpi=300)
+plt.savefig('saves/wt_ospl.png', dpi=300)
 plt.tight_layout()
 plt.show()
 
