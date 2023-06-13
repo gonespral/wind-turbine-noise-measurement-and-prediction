@@ -275,17 +275,18 @@ fig, ax = plt.subplots(figsize=(size_x, size_y))
 for wt_ospl, v_inf in zip(val_list, valf_list):
     # Get color from cmap but fixed
     color = plt.cm.get_cmap('viridis')(20)
-    ax.scatter(v_inf, wt_ospl, color=color, label = "validation")
+    ax.scatter(v_inf, wt_ospl, color=color, label = "Validation data")
 for wt_ospl, v_inf in zip(default_list, defaultf_list):
     color = plt.cm.get_cmap('viridis')(20)
     ax.plot(v_inf, wt_ospl, color=color, label = "BPM")
 ax.set_xscale('log')
-ax.set_xlim(f_lower, 20000)
+ax.set_xlim(100, 20000)
+ax.set_ylim(20, 70)
 ax.set_xlabel("Frequency (Hz)")
-ax.set_ylabel('OSPL (dB)')
+ax.set_ylabel('SPL (dB)')
 ax.legend()
 ax.grid(True, which='both')
-plt.savefig('saves/wt_ospl.png', dpi=300)
+plt.savefig('saves/ValGraph.eps')
 plt.tight_layout()
 plt.show()
 
